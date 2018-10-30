@@ -1,0 +1,147 @@
+%YAML 1.2
+---
+# http://www.sublimetext.com/docs/3/syntax.html
+name: Pest
+file_extensions:
+  - pest
+scope: source.pest
+variables:
+  ident: '\b\w+\b'
+  trailing_op: '[*?+]'
+  replaceable_support_idents: '\b(WHITESPACE|COMMENT)\b'
+  support_idents: '\b(PUSH|POP|ANY|SOI|EOI|NEWLINE|ASCII_ALPHANUMERIC)\b|{{replaceable_support_idents}}'
+contexts:
+  main:
+    - include: comments
+    - include: rule_decl
+    - match: \S
+      scope: invalid
+
+  rule_decl:
+    - match: '^\s*{{replaceable_support_idents}}'
+      scope: support.function.override
+      set: [rule_def, must_be_equals]
+    - match: '^\s*{{ident}}'
+      scope: entity.name.function
+      set: [rule_def, must_be_equals]
+    - match: \S
+      scope: invalid
+
+  must_be_equals:
+    - match: '='
+      scope: keyword.operator
+      pop: true
+    - match: \S
+      scope: invalid
+
+  rule_def:
+    - match: '([@_$]?)\{'
+      captures:
+        1: keyword.operator
+      set:
+        - match: '\}'
+          pop: true
+        - include: rule_def_inner
+
+  rule_def_inner: 
+    - include: comments
+    - match: '(\^?)(")'
+      captures:
+        1: keyword.operator
+        2: punctuation.definition.string.begin
+      push:
+        - meta_scope: string.quoted.double
+        - match: '\\\\'
+        - match: '\\"'
+        - match: '"'
+          scope: punctuation.definition.string.end
+          set: trailing
+    - match: ''''
+      captures:
+        1: keyword.operator
+        2: punctuation.definition.string.begin
+      push:
+        - meta_scope: string.quoted.single
+        - match: ''''
+          scope: punctuation.definition.string.end
+          set:
+            - match: '\.\.'
+              push:
+              - match: ''''
+                captures:
+                  1: keyword.operator
+                  2: punctuation.definition.string.begin
+                set:
+                  - meta_scope: string.quoted.single
+                  - match: ''''
+                    scope: punctuation.definition.string.end
+                    set: trailing
+              - match: \S
+                scope: invalid
+            - include: trailing
+    - match: '{{support_idents}}'
+      scope: support.constant
+      push: trailing
+    - match: '{{ident}}'
+      scope: meta.function-call variable.function
+      push: trailing
+    - match: '[~|~]'
+      scope: keyword.operator
+    - match: '[!&]'
+      scope: keyword.operator
+    - match: \(
+      scope: punctuation.section.parens.begin
+      push:
+      - match: \)
+        scope: punctuation.section.parens.end
+        set: trailing
+      - include: rule_def_inner
+    - match: \S
+      scope: invalid
+
+  rule_name:
+    - match: '{{ident}}'
+
+  comments:
+    - match: (//).*$\n?
+      scope: comment.line.double-dash
+      captures:
+        1: punctuation.definition.comment
+
+  trailing:
+    - match: '{{trailing_op}}'
+      scope: keyword.operator
+      set: 
+      - match: '{{trailing_op}}'
+        scope: invalid
+      - match: ''
+        pop: true
+    - match: '{'
+      push: trailing_braces
+    - match: ''
+      pop: true
+
+  trailing_braces:
+    - match: '}'
+      scope: invalid
+      pop: true
+    - match: \d+
+      scope: constant.numeric.integer
+      set:
+      - match: '}'
+        pop: true
+      - match: ','
+        set:
+        - match: \d+
+          scope: constant.numeric.integer
+          set:
+          - match: '}'
+            pop: true
+          - match: \S
+            scope: invalid
+        - match: \S
+          scope: invalid
+      - match: \S
+        scope: invalid
+    - match: \S
+      scope: invalid

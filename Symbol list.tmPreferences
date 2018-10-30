@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>name</key>
+	<string>Symbol List</string>
+	<key>scope</key>
+	<string>
+		source.pest support.type.override
+	</string>
+	<key>settings</key>
+	<dict>
+		<key>showInSymbolList</key>
+		<string>1</string>
+		<key>showInIndexedSymbolList</key>
+		<string>1</string>
+	</dict>
+	<key>uuid</key>
+	<string>E10AE9E6-40FC-4655-AD68-1A95B1FF44C4</string>
+</dict>
+</plist>
