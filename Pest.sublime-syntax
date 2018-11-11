@@ -4,7 +4,7 @@
 name: Pest
 file_extensions:
   - pest
-scope: source.pest
+scope: source.pest.pest
 variables:
   ident: '\b\w+\b'
   trailing_op: '[*?+]'
@@ -15,29 +15,29 @@ contexts:
     - include: comments
     - include: rule_decl
     - match: \S
-      scope: invalid
+      scope: invalid.pest
 
   rule_decl:
     - match: '^\s*{{replaceable_support_idents}}'
-      scope: support.function.override
+      scope: support.function.override.pest
       set: [rule_def, must_be_equals]
     - match: '^\s*{{ident}}'
-      scope: entity.name.function
+      scope: entity.name.function.pest
       set: [rule_def, must_be_equals]
     - match: \S
-      scope: invalid
+      scope: invalid.pest
 
   must_be_equals:
     - match: '='
-      scope: keyword.operator
+      scope: keyword.operator.pest
       pop: true
     - match: \S
-      scope: invalid
+      scope: invalid.pest
 
   rule_def:
     - match: '([@_$]?)\{'
       captures:
-        1: keyword.operator
+        1: keyword.operator.pest
       set:
         - match: '\}'
           pop: true
@@ -47,73 +47,73 @@ contexts:
     - include: comments
     - match: '(\^?)(")'
       captures:
-        1: keyword.operator
-        2: punctuation.definition.string.begin
+        1: keyword.operator.pest
+        2: punctuation.definition.string.begin.pest
       push:
-        - meta_scope: string.quoted.double
+        - meta_scope: string.quoted.double.pest
         - match: '\\\\'
         - match: '\\"'
         - match: '"'
-          scope: punctuation.definition.string.end
+          scope: punctuation.definition.string.end.pest
           set: trailing
     - match: ''''
       captures:
-        1: keyword.operator
-        2: punctuation.definition.string.begin
+        1: keyword.operator.pest
+        2: punctuation.definition.string.begin.pest
       push:
-        - meta_scope: string.quoted.single
+        - meta_scope: string.quoted.single.pest
         - match: ''''
-          scope: punctuation.definition.string.end
+          scope: punctuation.definition.string.end.pest
           set:
             - match: '\.\.'
               push:
               - match: ''''
                 captures:
-                  1: keyword.operator
-                  2: punctuation.definition.string.begin
+                  1: keyword.operator.pest
+                  2: punctuation.definition.string.begin.pest
                 set:
-                  - meta_scope: string.quoted.single
+                  - meta_scope: string.quoted.single.pest
                   - match: ''''
-                    scope: punctuation.definition.string.end
+                    scope: punctuation.definition.string.end.pest
                     set: trailing
               - match: \S
-                scope: invalid
+                scope: invalid.pest
             - include: trailing
     - match: '{{support_idents}}'
-      scope: support.constant
+      scope: meta.function-call support.function.pest
       push: trailing
     - match: '{{ident}}'
-      scope: meta.function-call variable.function
+      scope: meta.function-call variable.function.pest
       push: trailing
     - match: '[~|~]'
-      scope: keyword.operator
+      scope: keyword.operator.pest
     - match: '[!&]'
-      scope: keyword.operator
+      scope: keyword.operator.pest
     - match: \(
-      scope: punctuation.section.parens.begin
+      scope: punctuation.section.parens.begin.pest
       push:
       - match: \)
-        scope: punctuation.section.parens.end
+        scope: punctuation.section.parens.end.pest
         set: trailing
       - include: rule_def_inner
     - match: \S
-      scope: invalid
+      scope: invalid.pest
 
   rule_name:
     - match: '{{ident}}'
 
   comments:
     - match: (//).*$\n?
-      scope: comment.line.double-dash
+      scope: comment.line.double-dash.pest
       captures:
-        1: punctuation.definition.comment
+        1: punctuation.definition.comment.pest
 
   trailing:
     - match: '{{trailing_op}}'
-      scope: keyword.operator
+      scope: keyword.operator.pest
       set: 
       - match: '{{trailing_op}}'
-        scope: invalid
+        scope: invalid.pest
       - match: ''
         pop: true
     - match: '{'
@@ -123,25 +123,25 @@ contexts:
 
   trailing_braces:
     - match: '}'
-      scope: invalid
+      scope: invalid.pest
       pop: true
     - match: \d+
-      scope: constant.numeric.integer
+      scope: constant.numeric.integer.pest
       set:
       - match: '}'
         pop: true
       - match: ','
         set:
         - match: \d+
-          scope: constant.numeric.integer
+          scope: constant.numeric.integer.pest
           set:
           - match: '}'
             pop: true
           - match: \S
-            scope: invalid
+            scope: invalid.pest
         - match: \S
-          scope: invalid
+          scope: invalid.pest
       - match: \S
-        scope: invalid
+        scope: invalid.pest
     - match: \S
-      scope: invalid
+      scope: invalid.pest
