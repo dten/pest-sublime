@@ -1,4 +1,4 @@
-# Pest Syntaax
+# Pest Syntax
 Pest syntax for Sublime Text 3.0
 
 Syntax highlighting for .pest files used with the [Pest](https://github.com/pest-parser/pest) parser.
