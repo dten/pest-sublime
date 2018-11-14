@@ -107,6 +107,17 @@ contexts:
       scope: comment.line.double-dash.pest
       captures:
         1: punctuation.definition.comment.pest
+    - include: block_comment
+
+  block_comment:
+    - match: '/\*'
+      scope: punctuation.definition.comment.pest
+      push:
+        - meta_scope: comment.block.pest
+        - include: block_comment
+        - match: '\*/'
+          scope: punctuation.definition.comment.pest
+          pop: true
 
   trailing:
     - match: '{{trailing_op}}'
