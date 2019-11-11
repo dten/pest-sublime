@@ -10,6 +10,7 @@ variables:
   trailing_op: '[*?+]'
   replaceable_support_idents: '\b(WHITESPACE|COMMENT)\b'
   support_idents: '\b(PUSH|POP|ANY|SOI|EOI|NEWLINE|ASCII_ALPHANUMERIC)\b|{{replaceable_support_idents}}'
+  escaped_char: '\\("|\\|r|n|t|0|''|x\h{2}|u\{\h{2,6}\})'
 contexts:
   main:
     - include: comments
@@ -43,6 +44,12 @@ contexts:
           pop: true
         - include: rule_def_inner
 
+  escaped-char:
+    - match: '{{escaped_char}}'
+      scope: constant.character.escape.pest
+    - match: '\\.'
+      scope: invalid.pest
+
   rule_def_inner: 
     - include: comments
     - match: '(\^?)(")'
@@ -51,33 +58,32 @@ contexts:
         2: punctuation.definition.string.begin.pest
       push:
         - meta_scope: string.quoted.double.pest
-        - match: '\\\\'
-        - match: '\\"'
+        - include: escaped-char
         - match: '"'
           scope: punctuation.definition.string.end.pest
           set: trailing
     - match: ''''
-      captures:
-        1: keyword.operator.pest
-        2: punctuation.definition.string.begin.pest
+      scope: punctuation.definition.string.begin.pest
       push:
         - meta_scope: string.quoted.single.pest
+        - include: escaped-char
         - match: ''''
           scope: punctuation.definition.string.end.pest
           set:
             - match: '\.\.'
+              scope: keyword.operator.range.pest
               push:
               - match: ''''
-                captures:
-                  1: keyword.operator.pest
-                  2: punctuation.definition.string.begin.pest
+                scope: punctuation.definition.string.begin.pest
                 set:
                   - meta_scope: string.quoted.single.pest
+                  - include: escaped-char
                   - match: ''''
                     scope: punctuation.definition.string.end.pest
                     set: trailing
               - match: \S
                 scope: invalid.pest
+                pop: true
             - include: trailing
     - match: '{{support_idents}}'
       scope: meta.function-call support.function.pest
