@@ -83,6 +83,7 @@ contexts:
                     set: trailing
               - match: \S
                 scope: invalid.pest
+                pop: true
             - include: trailing
     - match: '{{support_idents}}'
       scope: meta.function-call support.function.pest
