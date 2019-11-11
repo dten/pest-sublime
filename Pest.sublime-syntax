@@ -47,6 +47,8 @@ contexts:
   escaped-char:
     - match: '{{escaped_char}}'
       scope: constant.character.escape.pest
+    - match: '\\.'
+      scope: invalid.pest
 
   rule_def_inner: 
     - include: comments
