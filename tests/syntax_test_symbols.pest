@@ -1,0 +1,16 @@
+// SYNTAX TEST "Pest.sublime-syntax"
+
+  WHITESPACE = _{ " " | "\t" }
+//@@@@@@@@@@ definition
+
+  COMMENT = _{ "/*" ~ (!"*/" ~ ANY)* ~ "*/" }
+//@@@@@@@ definition
+//                             @@@ reference
+
+  my_rule = { SOI ~ WHITESPACE ~ COMMENT ~ other_rule ~ EOI }
+//@@@@@@@ definition
+//            @@@ reference
+//                  @@@@@@@@@@ reference
+//                               @@@@@@@ reference
+//                                         @@@@@@@@@@ reference
+//                                                      @@@ reference
