@@ -1,0 +1,32 @@
+// SYNTAX TEST "Pest.sublime-syntax"
+// Official test grammar from pest-parser/pest: derive/tests/opt.pest
+
+expr = {
+  SOI ~
+//^^^ meta.function-call support.function.pest
+//    ^ keyword.operator.pest
+  #prefix=(STAR)? ~ #suffix=DOT?
+//^^^^^^^ entity.name.tag.pest
+//       ^ keyword.operator.pest
+//        ^ punctuation.section.parens.begin.pest
+//         ^^^^ meta.function-call variable.function.pest
+//             ^ punctuation.section.parens.end.pest
+//              ^ keyword.operator.pest
+//                ^ keyword.operator.pest
+//                  ^^^^^^^ entity.name.tag.pest
+//                         ^ keyword.operator.pest
+//                          ^^^ meta.function-call variable.function.pest
+//                             ^ keyword.operator.pest
+  ~ EOI
+//^ keyword.operator.pest
+//  ^^^ meta.function-call support.function.pest
+}
+
+STAR={"*"}
+// <- entity.name.function.pest
+//  ^ keyword.operator.pest
+//    ^^^ string.quoted.double.pest
+DOT={"."}
+// <- entity.name.function.pest
+// ^ keyword.operator.pest
+//   ^^^ string.quoted.double.pest

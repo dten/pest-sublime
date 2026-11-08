@@ -1,0 +1,26 @@
+// SYNTAX TEST "Pest.sublime-syntax"
+// Official example from pest-parser/pest: derive/examples/base.pest
+
+WHITESPACE   =  _{ " " | "\t" | NEWLINE }
+// <- support.function.override.pest
+//^^^^^^^^ support.function.override.pest
+//           ^ keyword.operator.pest
+//              ^ keyword.operator.pest
+//                 ^^^ string.quoted.double.pest
+//                     ^ keyword.operator.pest
+//                       ^^^^ string.quoted.double.pest
+//                        ^^ constant.character.escape.pest
+//                            ^ keyword.operator.pest
+//                              ^^^^^^^ meta.function-call support.function.pest
+int          =  @{ (ASCII_NONZERO_DIGIT ~ ASCII_DIGIT+ | ASCII_DIGIT) }
+// <- entity.name.function.pest
+//           ^ keyword.operator.pest
+//              ^ keyword.operator.pest
+//                 ^ punctuation.section.parens.begin.pest
+//                  ^^^^^^^^^^^^^^^^^^^ meta.function-call support.function.pest
+//                                      ^ keyword.operator.pest
+//                                        ^^^^^^^^^^^ meta.function-call support.function.pest
+//                                                   ^ keyword.operator.pest
+//                                                     ^ keyword.operator.pest
+//                                                       ^^^^^^^^^^^ meta.function-call support.function.pest
+//                                                                  ^ punctuation.section.parens.end.pest

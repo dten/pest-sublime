@@ -1,0 +1,73 @@
+// SYNTAX TEST "Pest.sublime-syntax"
+// Official test grammar from pest-parser/pest: derive/tests/implicit.pest
+
+program = _{ SOI ~ implicit ~ EOI  }
+// <- entity.name.function.pest
+//      ^ keyword.operator.pest
+//        ^ keyword.operator.pest
+//           ^^^ meta.function-call support.function.pest
+//               ^ keyword.operator.pest
+//                 ^^^^^^^^ meta.function-call variable.function.pest
+//                          ^ keyword.operator.pest
+//                            ^^^ meta.function-call support.function.pest
+implicit= ${ #head = or ~ #tail = (WHITESPACE+ ~ or)* }
+// <- entity.name.function.pest
+//      ^ keyword.operator.pest
+//        ^ keyword.operator.pest
+//           ^^^^^ entity.name.tag.pest
+//                 ^ keyword.operator.pest
+//                   ^^ meta.function-call variable.function.pest
+//                      ^ keyword.operator.pest
+//                        ^^^^^ entity.name.tag.pest
+//                              ^ keyword.operator.pest
+//                                ^ punctuation.section.parens.begin.pest
+//                                 ^^^^^^^^^^ meta.function-call support.function.pest
+//                                           ^ keyword.operator.pest
+//                                             ^ keyword.operator.pest
+//                                               ^^ meta.function-call variable.function.pest
+//                                                 ^ punctuation.section.parens.end.pest
+//                                                  ^ keyword.operator.pest
+
+or  = !{ #more_and = and ~ (or_op ~ and)+ | #one_and = and }
+// <- entity.name.function.pest
+//  ^ keyword.operator.pest
+//    ^ keyword.operator.pest
+//       ^^^^^^^^^ entity.name.tag.pest
+//                 ^ keyword.operator.pest
+//                   ^^^ meta.function-call variable.function.pest
+//                       ^ keyword.operator.pest
+//                         ^ punctuation.section.parens.begin.pest
+//                          ^^^^^ meta.function-call variable.function.pest
+//                                ^ keyword.operator.pest
+//                                  ^^^ meta.function-call variable.function.pest
+//                                     ^ punctuation.section.parens.end.pest
+//                                      ^ keyword.operator.pest
+//                                        ^ keyword.operator.pest
+//                                          ^^^^^^^^ entity.name.tag.pest
+//                                                   ^ keyword.operator.pest
+//                                                     ^^^ meta.function-call variable.function.pest
+and = { #more_comp = comp ~ (and_op ~ comp)+ | #one_comp = comp }
+//      ^^^^^^^^^^ entity.name.tag.pest
+//                 ^ keyword.operator.pest
+//                                             ^^^^^^^^^ entity.name.tag.pest
+//                                                       ^ keyword.operator.pest
+comp = { #more_array = array ~ eq_op ~ array | #one_array = array }
+//       ^^^^^^^^^^^ entity.name.tag.pest
+//                   ^ keyword.operator.pest
+//                                             ^^^^^^^^^^ entity.name.tag.pest
+//                                                        ^ keyword.operator.pest
+
+array = ${ term }
+//      ^ keyword.operator.pest
+//         ^^^^ meta.function-call variable.function.pest
+
+term = _{ ASCII_ALPHANUMERIC+ }
+//     ^ keyword.operator.pest
+//        ^^^^^^^^^^^^^^^^^^ meta.function-call support.function.pest
+//                          ^ keyword.operator.pest
+or_op = { "||" }
+and_op = { "&&" }
+eq_op = { "=" }
+WHITESPACE = _{ " " | "\t" | NEWLINE }
+// <- support.function.override.pest
+//                           ^^^^^^^ meta.function-call support.function.pest

@@ -1,0 +1,23 @@
+// SYNTAX TEST "Pest.sublime-syntax"
+// Official test grammar from pest-parser/pest: derive/tests/reporting.pest
+
+a = { "a" }
+b = { "b" }
+c = { "c" }
+d = { ANY }
+//    ^^^ meta.function-call support.function.pest
+
+choices = _{ a | b | c }
+choices_no_progress = { a | b | c }
+choices_a_progress = { a ~ a | b | c }
+choices_b_progress = { a | b ~ b | c }
+
+level1 = _{ level2 }
+level2 = _{ a | b | c }
+
+negative = _{ !d }
+//            ^ keyword.operator.pest
+//             ^ meta.function-call variable.function.pest
+negative_match = _{ !a ~ b }
+mixed = _{ !d | a }
+mixed_progress = _{ (!d | a | b) ~ a }

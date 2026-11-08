@@ -1,0 +1,39 @@
+// SYNTAX TEST "Pest.sublime-syntax"
+// Official test grammar from pest-parser/pest: derive/tests/lists.pest
+
+item = { (!"\n" ~ ANY)* }
+// <- entity.name.function.pest
+//   ^ keyword.operator.pest
+//       ^ punctuation.section.parens.begin.pest
+//        ^ keyword.operator.pest
+//         ^^^^ string.quoted.double.pest
+//          ^^ constant.character.escape.pest
+//              ^ keyword.operator.pest
+//                ^^^ meta.function-call support.function.pest
+//                   ^ punctuation.section.parens.end.pest
+//                    ^ keyword.operator.pest
+
+lists        = _{ lines ~ EOI }
+// <- entity.name.function.pest
+//           ^ keyword.operator.pest
+//             ^ keyword.operator.pest
+//                ^^^^^ meta.function-call variable.function.pest
+//                      ^ keyword.operator.pest
+//                        ^^^ meta.function-call support.function.pest
+lines        = _{ top_first ~ ("\n" ~ top_continue)* }
+top_first    = _{ "- " ~ item ~ ("\n" ~ children)? }
+top_continue = _{ PEEK_ALL ~ "- " ~ item ~ ("\n" ~ children)? }
+//                ^^^^^^^^ meta.function-call support.function.pest
+
+indentation = _{ (" " | "\t")+ }
+children    =  { PEEK_ALL ~ PUSH(indentation) ~ lines ~ DROP }
+//               ^^^^^^^^ meta.function-call support.function.pest
+//                        ^ keyword.operator.pest
+//                          ^^^^ meta.function-call support.function.pest
+//                              ^ punctuation.section.parens.begin.pest
+//                               ^^^^^^^^^^^ meta.function-call variable.function.pest
+//                                          ^ punctuation.section.parens.end.pest
+//                                            ^ keyword.operator.pest
+//                                              ^^^^^ meta.function-call variable.function.pest
+//                                                    ^ keyword.operator.pest
+//                                                      ^^^^ meta.function-call support.function.pest

@@ -1,0 +1,36 @@
+// SYNTAX TEST "Pest.sublime-syntax"
+// Official test grammar from pest-parser/pest: generator/tests/test.pest
+
+//! A parser for JSON file.
+//! And this is a example for JSON parser.
+//!
+//!     indent-4-space
+//!
+
+/// Matches foo str, e.g.: `foo`
+foo = { "foo" }
+// <- entity.name.function.pest
+//  ^ keyword.operator.pest
+//      ^^^^^ string.quoted.double.pest
+
+/// Matches bar str
+///
+///   Indent 2, e.g: `bar` or `foobar`
+
+bar = { "bar" | "foobar" }
+// <- entity.name.function.pest
+//  ^ keyword.operator.pest
+//      ^^^^^ string.quoted.double.pest
+//            ^ keyword.operator.pest
+//              ^^^^^^^^ string.quoted.double.pest
+
+bar1 = { "bar1" }
+// <- entity.name.function.pest
+
+/// Matches dar
+/// 
+/// Match dar description
+/// 
+
+dar = { "da" }
+// <- entity.name.function.pest

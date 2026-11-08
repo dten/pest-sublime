@@ -1,0 +1,27 @@
+// SYNTAX TEST "Pest.sublime-syntax"
+// Official test grammar from pest-parser/pest: derive/tests/nested_expr.pest
+
+// Example grammar from the issue demonstrating deep nesting
+// This grammar can cause stack overflow with deeply nested parentheses
+
+WHITESPACE = _{ " " | "\t" | "\n" | "\r" }
+// <- support.function.override.pest
+//         ^ keyword.operator.pest
+//           ^ keyword.operator.pest
+expression = { SOI ~ add_expr ~ EOI }
+// <- entity.name.function.pest
+//         ^ keyword.operator.pest
+//             ^^^ meta.function-call support.function.pest
+//                 ^ keyword.operator.pest
+//                   ^^^^^^^^ meta.function-call variable.function.pest
+//                            ^ keyword.operator.pest
+//                              ^^^ meta.function-call support.function.pest
+add_expr = { mul_expr ~ ("+" ~ mul_expr)* }
+mul_expr = { primary ~ ("*" ~ primary)* }
+primary = { number | "(" ~ add_expr ~ ")" }
+number = @{ ASCII_DIGIT+ }
+// <- entity.name.function.pest
+//     ^ keyword.operator.pest
+//       ^ keyword.operator.pest
+//          ^^^^^^^^^^^ meta.function-call support.function.pest
+//                     ^ keyword.operator.pest

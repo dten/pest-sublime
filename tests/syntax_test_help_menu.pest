@@ -1,0 +1,146 @@
+// SYNTAX TEST "Pest.sublime-syntax"
+// Official example from pest-parser/pest: derive/examples/help-menu.pest
+
+WHITESPACE = _{ " " }
+// <- support.function.override.pest
+//         ^ keyword.operator.pest
+//           ^ keyword.operator.pest
+//              ^^^ string.quoted.double.pest
+
+Rew       = ! { ( ASCII_DIGIT | ASCII_ALPHA_UPPER | "_" | "-" ) + }
+// <- entity.name.function.pest
+//        ^ keyword.operator.pest
+//          ^ keyword.operator.pest
+//              ^ punctuation.section.parens.begin.pest
+//                ^^^^^^^^^^^ meta.function-call support.function.pest
+//                            ^ keyword.operator.pest
+//                              ^^^^^^^^^^^^^^^^^ meta.function-call support.function.pest
+//                                                ^ keyword.operator.pest
+//                                                  ^^^ string.quoted.double.pest
+//                                                      ^ keyword.operator.pest
+//                                                        ^^^ string.quoted.double.pest
+//                                                            ^ punctuation.section.parens.end.pest
+//                                                              ^ keyword.operator.pest - invalid.pest
+Lit       = ! { ( ASCII_ALPHANUMERIC              | "_" | "-" ) + }
+// <- entity.name.function.pest
+//        ^ keyword.operator.pest
+//          ^ keyword.operator.pest
+//              ^ punctuation.section.parens.begin.pest
+//                ^^^^^^^^^^^^^^^^^^ meta.function-call support.function.pest
+//                                                ^ keyword.operator.pest
+//                                                  ^^^ string.quoted.double.pest
+//                                                      ^ keyword.operator.pest
+//                                                        ^^^ string.quoted.double.pest
+//                                                            ^ punctuation.section.parens.end.pest
+//                                                              ^ keyword.operator.pest - invalid.pest
+Word      = _ { Rew | Lit }
+// <- entity.name.function.pest
+//        ^ keyword.operator.pest
+//          ^ keyword.operator.pest
+//              ^^^ meta.function-call variable.function.pest
+//                  ^ keyword.operator.pest
+//                    ^^^ meta.function-call variable.function.pest
+WordGroup = _ { Word ~ ( " " ~ Word ) * }
+// <- entity.name.function.pest
+//        ^ keyword.operator.pest
+//          ^ keyword.operator.pest
+//              ^^^^ meta.function-call variable.function.pest
+//                   ^ keyword.operator.pest
+//                     ^ punctuation.section.parens.begin.pest
+//                       ^^^ string.quoted.double.pest
+//                           ^ keyword.operator.pest
+//                             ^^^^ meta.function-call variable.function.pest
+//                                  ^ punctuation.section.parens.end.pest
+//                                    ^ keyword.operator.pest - invalid.pest
+
+// Argument groups are nonatomic;
+// "<whitespace |between|the|bar|or|braces |is | OK>"
+
+ArgOptChoiceGroup = { ( "[" ~ Word + ~
+// <- entity.name.function.pest
+//                ^ keyword.operator.pest
+//                    ^ punctuation.section.parens.begin.pest
+//                      ^^^ string.quoted.double.pest
+//                          ^ keyword.operator.pest
+//                            ^^^^ meta.function-call variable.function.pest
+//                                 ^ keyword.operator.pest - invalid.pest
+//                                   ^ keyword.operator.pest
+                      ( "|" ~ ( Word
+//                    ^ punctuation.section.parens.begin.pest
+//                      ^^^ string.quoted.double.pest
+//                          ^ keyword.operator.pest
+//                            ^ punctuation.section.parens.begin.pest
+//                              ^^^^ meta.function-call variable.function.pest
+                              | ArgChoiceGroup ) + ) * ~
+//                            ^ keyword.operator.pest
+//                              ^^^^^^^^^^^^^^ meta.function-call variable.function.pest
+//                                             ^ punctuation.section.parens.end.pest
+//                                               ^ keyword.operator.pest - invalid.pest
+//                                                 ^ punctuation.section.parens.end.pest
+//                                                   ^ keyword.operator.pest - invalid.pest
+//                                                     ^ keyword.operator.pest
+                        "]" ) + }
+//                      ^^^ string.quoted.double.pest
+//                          ^ punctuation.section.parens.end.pest
+//                            ^ keyword.operator.pest - invalid.pest
+ArgReqChoiceGroup = { ( "<" ~ Word + ~
+// <- entity.name.function.pest
+//                ^ keyword.operator.pest
+//                    ^ punctuation.section.parens.begin.pest
+//                      ^^^ string.quoted.double.pest
+//                          ^ keyword.operator.pest
+//                            ^^^^ meta.function-call variable.function.pest
+//                                 ^ keyword.operator.pest - invalid.pest
+//                                   ^ keyword.operator.pest
+                      ( "|" ~ ( Word
+                              | ArgChoiceGroup ) + ) * ~
+//                                             ^ punctuation.section.parens.end.pest
+//                                               ^ keyword.operator.pest - invalid.pest
+//                                                 ^ punctuation.section.parens.end.pest
+//                                                   ^ keyword.operator.pest - invalid.pest
+//                                                     ^ keyword.operator.pest
+                        ">" ) + }
+//                      ^^^ string.quoted.double.pest
+//                          ^ punctuation.section.parens.end.pest
+//                            ^ keyword.operator.pest - invalid.pest
+ArgChoiceGroup    = _ { ArgOptChoiceGroup
+// <- entity.name.function.pest
+//                ^ keyword.operator.pest
+//                  ^ keyword.operator.pest
+//                      ^^^^^^^^^^^^^^^^^ meta.function-call variable.function.pest
+                      | ArgReqChoiceGroup }
+//                    ^ keyword.operator.pest
+//                      ^^^^^^^^^^^^^^^^^ meta.function-call variable.function.pest
+
+Command = {
+    ( WordGroup ) ~
+//  ^ punctuation.section.parens.begin.pest
+//    ^^^^^^^^^ meta.function-call variable.function.pest
+//              ^ punctuation.section.parens.end.pest
+//                ^ keyword.operator.pest
+    ( ArgChoiceGroup ) *
+//  ^ punctuation.section.parens.begin.pest
+//    ^^^^^^^^^^^^^^ meta.function-call variable.function.pest
+//                   ^ punctuation.section.parens.end.pest
+//                     ^ keyword.operator.pest - invalid.pest
+}
+
+HelpMenu = {
+    SOI ~
+//  ^^^ meta.function-call support.function.pest
+//      ^ keyword.operator.pest
+
+    (
+        Command ~
+//      ^^^^^^^ meta.function-call variable.function.pest
+//              ^ keyword.operator.pest
+        NEWLINE
+//      ^^^^^^^ meta.function-call support.function.pest
+    ) * ~
+//  ^ punctuation.section.parens.end.pest
+//    ^ keyword.operator.pest - invalid.pest
+//      ^ keyword.operator.pest
+
+    EOI
+//  ^^^ meta.function-call support.function.pest
+}
