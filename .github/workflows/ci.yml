@@ -1,0 +1,34 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  syntax_tests:
+    name: Syntax Tests (Sublime Text ${{ matrix.sublime-build }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        sublime-build: [4200]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          path: st_syntax_tests/Data/Packages/Pest
+
+      - name: Download Sublime Text syntax_tests runner
+        run: |
+          wget -O st_syntax_tests.tar.xz https://download.sublimetext.com/st_syntax_tests_build_${{ matrix.sublime-build }}_x64.tar.xz
+          tar xf st_syntax_tests.tar.xz
+          rm st_syntax_tests.tar.xz
+
+      - name: Run syntax tests
+        run: |
+          cd st_syntax_tests
+          ./syntax_tests
