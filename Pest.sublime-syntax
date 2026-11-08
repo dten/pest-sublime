@@ -6,10 +6,11 @@ file_extensions:
   - pest
 scope: source.pest.pest
 variables:
-  ident: '\b[_a-zA-Z]\w*\b'
+  ident: '\b(?!(?:PUSH|PUSH_LITERAL)\b)(?:_\w+|[a-zA-Z]\w*)\b'
   trailing_op: '[*?+]'
   replaceable_support_idents: '\b(WHITESPACE|COMMENT)\b'
-  builtin_rules: '\b(ANY|DROP|EOI|NEWLINE|PEEK_ALL|PEEK|POP_ALL|POP|PUSH_LITERAL|PUSH|SOI)\b'
+  forbidden_rule_idents: '\b(_|ANY|DROP|EOI|PEEK_ALL|PEEK|POP_ALL|POP|PUSH_LITERAL|PUSH|SOI)\b'
+  builtin_rules: '\b(ANY|DROP|EOI|NEWLINE|PEEK_ALL|PEEK|POP_ALL|POP|SOI)\b'
   ascii_rules: '\b(ASCII_ALPHANUMERIC|ASCII_ALPHA_LOWER|ASCII_ALPHA_UPPER|ASCII_ALPHA|ASCII_BIN_DIGIT|ASCII_DIGIT|ASCII_HEX_DIGIT|ASCII_NONZERO_DIGIT|ASCII_OCT_DIGIT|ASCII)\b'
   unicode_binary_rules: '\b(ALPHABETIC|BIDI_CONTROL|CASE_IGNORABLE|CASED|CHANGES_WHEN_CASEFOLDED|CHANGES_WHEN_CASEMAPPED|CHANGES_WHEN_LOWERCASED|CHANGES_WHEN_TITLECASED|CHANGES_WHEN_UPPERCASED|DASH|DEFAULT_IGNORABLE_CODE_POINT|DEPRECATED|DIACRITIC|EMOJI_COMPONENT|EMOJI_MODIFIER_BASE|EMOJI_MODIFIER|EMOJI_PRESENTATION|EMOJI|EXTENDED_PICTOGRAPHIC|EXTENDER|GRAPHEME_BASE|GRAPHEME_EXTEND|GRAPHEME_LINK|HEX_DIGIT|HYPHEN|IDS_BINARY_OPERATOR|IDS_TRINARY_OPERATOR|ID_CONTINUE|ID_START|IDEOGRAPHIC|JOIN_CONTROL|LOGICAL_ORDER_EXCEPTION|LOWERCASE|MATH|NONCHARACTER_CODE_POINT|OTHER_ALPHABETIC|OTHER_DEFAULT_IGNORABLE_CODE_POINT|OTHER_GRAPHEME_EXTEND|OTHER_ID_CONTINUE|OTHER_ID_START|OTHER_LOWERCASE|OTHER_MATH|OTHER_UPPERCASE|PATTERN_SYNTAX|PATTERN_WHITE_SPACE|PREPENDED_CONCATENATION_MARK|QUOTATION_MARK|RADICAL|REGIONAL_INDICATOR|SENTENCE_TERMINAL|SOFT_DOTTED|TERMINAL_PUNCTUATION|UNIFIED_IDEOGRAPH|UPPERCASE|VARIATION_SELECTOR|WHITE_SPACE|XID_CONTINUE|XID_START)\b'
   unicode_category_rules: '\b(CASED_LETTER|CLOSE_PUNCTUATION|CONNECTOR_PUNCTUATION|CONTROL|CURRENCY_SYMBOL|DASH_PUNCTUATION|DECIMAL_NUMBER|ENCLOSING_MARK|FINAL_PUNCTUATION|FORMAT|INITIAL_PUNCTUATION|LETTER_NUMBER|LETTER|LINE_SEPARATOR|LOWERCASE_LETTER|MARK|MATH_SYMBOL|MODIFIER_LETTER|MODIFIER_SYMBOL|NONSPACING_MARK|NUMBER|OPEN_PUNCTUATION|OTHER_LETTER|OTHER_NUMBER|OTHER_PUNCTUATION|OTHER_SYMBOL|OTHER|PARAGRAPH_SEPARATOR|PRIVATE_USE|PUNCTUATION|SEPARATOR|SPACE_SEPARATOR|SPACING_MARK|SURROGATE|SYMBOL|TITLECASE_LETTER|UNASSIGNED|UPPERCASE_LETTER)\b'
@@ -26,6 +27,9 @@ contexts:
   rule_decl:
     - match: '{{replaceable_support_idents}}'
       scope: support.function.override.pest
+      set: [rule_def, must_be_equals]
+    - match: '{{forbidden_rule_idents}}'
+      scope: invalid.pest
       set: [rule_def, must_be_equals]
     - match: '{{ident}}'
       scope: entity.name.function.pest
@@ -45,20 +49,113 @@ contexts:
     - include: comments
     - match: '[@_$!]'
       scope: keyword.operator.pest
-      set:
-        - include: comments
-        - match: '\{'
-          set:
-            - match: '\}'
-              pop: true
-            - include: rule_def_inner
-        - match: \S
-          scope: invalid.pest
+      set: rule_brace
+    - include: rule_brace
+
+  rule_brace:
+    - include: comments
     - match: '\{'
-      set:
-        - match: '\}'
-          pop: true
-        - include: rule_def_inner
+      set: [rule_close, expr_start]
+    - match: \S
+      scope: invalid.pest
+
+  rule_close:
+    - match: '\}'
+      pop: true
+    - match: ''
+      pop: true
+
+  paren_close:
+    - match: '\)'
+      scope: punctuation.section.parens.end.pest
+      pop: true
+    - match: '\}'
+      scope: invalid.pest
+      pop: true
+    - match: ''
+      pop: true
+
+  expr_start:
+    - include: comments
+    - match: '\|'
+      scope: keyword.operator.pest
+      set: expr_expect_term
+    - match: '~'
+      scope: invalid.pest
+      set: expr_expect_term
+    - match: '[})]'
+      scope: invalid.pest
+      pop: true
+    - include: expr_term
+
+  expr_expect_term:
+    - include: comments
+    - match: '[~|]'
+      scope: invalid.pest
+    - match: '[})]'
+      scope: invalid.pest
+      pop: true
+    - include: expr_term
+
+  expr_term:
+    - match: '(?=^\s*{{ident}}\s*=)'
+      pop: true
+    - match: '(\^)\s*(?=")'
+      captures:
+        1: keyword.operator.pest
+      set: expr_expect_term
+    - match: '"'
+      scope: punctuation.definition.string.begin.pest
+      set: [expr_after_term, trailing, double_quoted_string]
+    - match: ''''
+      scope: punctuation.definition.string.begin.pest
+      set: [expr_after_term, char_after, char_literal]
+    - match: '(#{{ident}})\s*(=)'
+      captures:
+        1: entity.name.tag.pest
+        2: keyword.operator.pest
+      set: expr_expect_term
+    - match: '[!&]'
+      scope: keyword.operator.pest
+      set: expr_expect_term
+    - match: '\b(PEEK)\s*(\[)'
+      captures:
+        1: meta.function-call support.function.pest
+      set: [expr_after_term, trailing, peek_slice]
+    - match: '\b(PUSH_LITERAL)\s*(\()'
+      captures:
+        1: meta.function-call support.function.pest
+        2: punctuation.section.parens.begin.pest
+      set: [expr_after_term, trailing, push_literal_arg]
+    - match: '\b(PUSH)\s*(\()|(\()'
+      captures:
+        1: meta.function-call support.function.pest
+        2: punctuation.section.parens.begin.pest
+        3: punctuation.section.parens.begin.pest
+      set: [expr_after_term, trailing, paren_close, expr_start]
+    - match: '{{support_idents}}'
+      scope: meta.function-call support.function.pest
+      set: [expr_after_term, trailing]
+    - match: '{{ident}}'
+      scope: meta.function-call variable.function.pest
+      set: [expr_after_term, trailing]
+    - match: '[^\s~|}()]+'
+      scope: invalid.pest
+      set: [expr_after_term, trailing]
+    - match: \S
+      scope: invalid.pest
+
+  expr_after_term:
+    - include: comments
+    - match: '(?=^\s*{{ident}}\s*=|[})])'
+      pop: true
+    - match: '[~|]'
+      scope: keyword.operator.pest
+      set: expr_expect_term
+    - match: '"(?:[^"\\]|\\.)*"'
+      scope: invalid.pest
+    - match: '''(?:[^''\\]|\\.)*'''
+      scope: invalid.pest
     - match: \S
       scope: invalid.pest
 
@@ -68,75 +165,81 @@ contexts:
     - match: '\\(?:.|$)'
       scope: invalid.pest
 
-  rule_def_inner: 
-    - include: comments
-    - match: '(\^)\s*(?=")'
-      captures:
-        1: keyword.operator.pest
+  double_quoted_string:
+    - meta_scope: string.quoted.double.pest
+    - include: escaped-char
     - match: '"'
-      scope: punctuation.definition.string.begin.pest
-      push:
-        - meta_scope: string.quoted.double.pest
-        - include: escaped-char
-        - match: '"'
-          scope: punctuation.definition.string.end.pest
-          set: trailing
+      scope: punctuation.definition.string.end.pest
+      pop: true
+
+  char_literal:
+    - meta_scope: string.quoted.single.pest
+    - match: ''''
+      scope: punctuation.definition.string.end.pest invalid.pest
+      pop: true
+    - match: '[^''\r\n]+(?=[^''\r\n]*$)'
+      scope: invalid.pest
+      pop: true
+    - match: '$'
+      pop: true
+    - match: '{{escaped_char}}'
+      scope: constant.character.escape.pest
+      set: char_literal_end
+    - match: '\\(?:.|$)'
+      scope: invalid.pest
+      set: char_literal_end
+    - match: '[^''\\\r\n]'
+      set: char_literal_end
+
+  char_literal_end:
+    - meta_scope: string.quoted.single.pest
+    - match: ''''
+      scope: punctuation.definition.string.end.pest
+      pop: true
+    - match: '[^''\r\n]+'
+      scope: invalid.pest
+    - match: '$'
+      pop: true
+
+  char_after:
+    - include: comments
+    - match: '\s*(\.\.)'
+      captures:
+        1: keyword.operator.range.pest
+      set: [trailing, char_range_rhs]
+    - include: trailing
+
+  char_range_rhs:
+    - include: comments
     - match: ''''
       scope: punctuation.definition.string.begin.pest
-      push:
-        - meta_scope: string.quoted.single.pest
-        - include: escaped-char
-        - match: ''''
-          scope: punctuation.definition.string.end.pest
-          set:
-            - include: comments
-            - match: '\s*(\.\.)'
-              captures:
-                1: keyword.operator.range.pest
-              set:
-              - include: comments
-              - match: ''''
-                scope: punctuation.definition.string.begin.pest
-                set:
-                  - meta_scope: string.quoted.single.pest
-                  - include: escaped-char
-                  - match: ''''
-                    scope: punctuation.definition.string.end.pest
-                    set: trailing
-              - match: \S
-                scope: invalid.pest
-                pop: true
-            - include: trailing
-    - match: '(#{{ident}})\s*(=)'
-      captures:
-        1: entity.name.tag.pest
-        2: keyword.operator.pest
-    - match: '\b(PEEK)\s*(\[)'
-      captures:
-        1: meta.function-call support.function.pest
-      push: [trailing, peek_slice]
-    - match: '{{support_idents}}'
-      scope: meta.function-call support.function.pest
-      push: trailing
-    - match: '{{ident}}'
-      scope: meta.function-call variable.function.pest
-      push: trailing
-    - match: '[~|~]'
-      scope: keyword.operator.pest
-    - match: '[!&]'
-      scope: keyword.operator.pest
-    - match: \(
-      scope: punctuation.section.parens.begin.pest
-      push:
-      - match: \)
-        scope: punctuation.section.parens.end.pest
-        set: trailing
-      - include: rule_def_inner
+      set: char_literal
     - match: \S
       scope: invalid.pest
+      pop: true
 
-  rule_name:
-    - match: '{{ident}}'
+  push_literal_arg:
+    - include: comments
+    - match: '"'
+      scope: punctuation.definition.string.begin.pest
+      set: [push_literal_end, double_quoted_string]
+    - match: '[})]'
+      scope: invalid.pest
+      pop: true
+    - match: '[^\s)}]+'
+      scope: invalid.pest
+      set: push_literal_end
+
+  push_literal_end:
+    - include: comments
+    - match: '\)'
+      scope: punctuation.section.parens.end.pest
+      pop: true
+    - match: '\}'
+      scope: invalid.pest
+      pop: true
+    - match: \S
+      scope: invalid.pest
 
   comments:
     - match: (//).*$\n?
@@ -157,18 +260,10 @@ contexts:
 
   peek_slice:
     - include: comments
-    - match: '\]'
-      scope: invalid.pest
-      pop: true
-    - match: '\.\.'
-      scope: keyword.operator.range.pest
-      set: peek_slice_after_dots
     - match: '(?:-0*[1-9]\d*|\d+)'
       scope: constant.numeric.integer.pest
       set: peek_slice_need_dots
-    - match: \S
-      scope: invalid.pest
-      set: peek_slice_end
+    - include: peek_slice_need_dots
 
   peek_slice_need_dots:
     - include: comments
@@ -184,14 +279,10 @@ contexts:
 
   peek_slice_after_dots:
     - include: comments
-    - match: '\]'
-      pop: true
     - match: '(?:-0*[1-9]\d*|\d+)'
       scope: constant.numeric.integer.pest
       set: peek_slice_end
-    - match: \S
-      scope: invalid.pest
-      set: peek_slice_end
+    - include: peek_slice_end
 
   peek_slice_end:
     - include: comments
@@ -204,11 +295,16 @@ contexts:
     - include: comments
     - match: '{{trailing_op}}'
       scope: keyword.operator.pest
-      set: 
-      - match: '{{trailing_op}}'
-        scope: invalid.pest
-      - match: ''
-        pop: true
+      set: trailing_after_op
+    - include: trailing_common
+
+  trailing_after_op:
+    - include: comments
+    - match: '{{trailing_op}}'
+      scope: invalid.pest
+    - include: trailing_common
+
+  trailing_common:
     - match: '\{'
       push: trailing_braces
     - match: '\s+'
@@ -217,47 +313,40 @@ contexts:
 
   trailing_braces:
     - include: comments
+    - match: ','
+      set: brace_need_digit
+    - match: \d+
+      scope: constant.numeric.integer.pest
+      set: brace_after_first_digit
+    - include: brace_need_digit
+
+  brace_need_digit:
+    - include: comments
     - match: '}'
       scope: invalid.pest
       pop: true
-    - match: ','
-      set:
-      - include: comments
-      - match: '}'
-        scope: invalid.pest
-        pop: true
-      - match: \d+
-        scope: constant.numeric.integer.pest
-        set:
-        - include: comments
-        - match: '}'
-          pop: true
-        - match: \S
-          scope: invalid.pest
-      - match: \S
-        scope: invalid.pest
     - match: \d+
       scope: constant.numeric.integer.pest
-      set:
-      - include: comments
-      - match: '}'
-        pop: true
-      - match: ','
-        set:
-        - include: comments
-        - match: '}'
-          pop: true
-        - match: \d+
-          scope: constant.numeric.integer.pest
-          set:
-          - include: comments
-          - match: '}'
-            pop: true
-          - match: \S
-            scope: invalid.pest
-        - match: \S
-          scope: invalid.pest
-      - match: \S
-        scope: invalid.pest
+      set: brace_end
+    - match: \S
+      scope: invalid.pest
+
+  brace_after_first_digit:
+    - include: comments
+    - match: ','
+      set: brace_after_comma
+    - include: brace_end
+
+  brace_after_comma:
+    - include: comments
+    - match: \d+
+      scope: constant.numeric.integer.pest
+      set: brace_end
+    - include: brace_end
+
+  brace_end:
+    - include: comments
+    - match: '}'
+      pop: true
     - match: \S
       scope: invalid.pest
