@@ -142,6 +142,20 @@ contexts:
     - match: '}'
       scope: invalid.pest
       pop: true
+    - match: ','
+      set:
+      - match: '}'
+        scope: invalid.pest
+        pop: true
+      - match: \d+
+        scope: constant.numeric.integer.pest
+        set:
+        - match: '}'
+          pop: true
+        - match: \S
+          scope: invalid.pest
+      - match: \S
+        scope: invalid.pest
     - match: \d+
       scope: constant.numeric.integer.pest
       set:
@@ -149,6 +163,8 @@ contexts:
         pop: true
       - match: ','
         set:
+        - match: '}'
+          pop: true
         - match: \d+
           scope: constant.numeric.integer.pest
           set:
