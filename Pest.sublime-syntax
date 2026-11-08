@@ -36,7 +36,7 @@ contexts:
       scope: invalid.pest
 
   rule_def:
-    - match: '([@_$]?)\{'
+    - match: '([@_$!]?)\{'
       captures:
         1: keyword.operator.pest
       set:
@@ -70,8 +70,9 @@ contexts:
         - match: ''''
           scope: punctuation.definition.string.end.pest
           set:
-            - match: '\.\.'
-              scope: keyword.operator.range.pest
+            - match: '\s*(\.\.)'
+              captures:
+                1: keyword.operator.range.pest
               push:
               - match: ''''
                 scope: punctuation.definition.string.begin.pest
@@ -85,6 +86,17 @@ contexts:
                 scope: invalid.pest
                 pop: true
             - include: trailing
+    - match: '(#{{ident}})\s*(=)'
+      captures:
+        1: entity.name.tag.pest
+        2: keyword.operator.pest
+    - match: '\b(PEEK)\s*(\[)\s*(-?\d+)?\s*(\.\.)\s*(-?\d+)?\s*(\])'
+      captures:
+        1: meta.function-call support.function.pest
+        3: constant.numeric.integer.pest
+        4: keyword.operator.range.pest
+        5: constant.numeric.integer.pest
+      push: trailing
     - match: '{{support_idents}}'
       scope: meta.function-call support.function.pest
       push: trailing
