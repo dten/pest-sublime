@@ -1,0 +1,180 @@
+// SYNTAX TEST "Pest.sublime-syntax"
+// Official test grammar from pest-parser/pest: derive/tests/grammar.pest
+
+string = { "abc" }
+// <- entity.name.function.pest
+//     ^ keyword.operator.pest
+//         ^^^^^ string.quoted.double.pest
+insensitive = { ^"abc" }
+// <- entity.name.function.pest
+//          ^ keyword.operator.pest
+//              ^ keyword.operator.pest
+//               ^^^^^ string.quoted.double.pest
+range = { '0'..'9' }
+// <- entity.name.function.pest
+//    ^ keyword.operator.pest
+//        ^^^ string.quoted.single.pest
+//           ^^ keyword.operator.range.pest
+//             ^^^ string.quoted.single.pest
+ident = { string }
+// <- entity.name.function.pest
+//    ^ keyword.operator.pest
+//        ^^^^^^ meta.function-call variable.function.pest
+pos_pred = { &string }
+//           ^ keyword.operator.pest
+//            ^^^^^^ meta.function-call variable.function.pest
+neg_pred = { !string }
+//           ^ keyword.operator.pest
+//            ^^^^^^ meta.function-call variable.function.pest
+double_neg_pred = { !!string }
+//                  ^^ keyword.operator.pest
+//                    ^^^^^^ meta.function-call variable.function.pest
+sequence = !{ string ~ string }
+// <- entity.name.function.pest
+//       ^ keyword.operator.pest
+//         ^ keyword.operator.pest - invalid.pest
+//            ^^^^^^ meta.function-call variable.function.pest
+//                   ^ keyword.operator.pest
+//                     ^^^^^^ meta.function-call variable.function.pest
+sequence_compound = ${ string ~ string }
+//                ^ keyword.operator.pest
+//                  ^ keyword.operator.pest
+sequence_atomic = @{ string ~ string }
+//              ^ keyword.operator.pest
+//                ^ keyword.operator.pest
+sequence_non_atomic = @{ sequence }
+sequence_atomic_compound = @{ sequence_compound }
+sequence_nested = { string ~ string }
+sequence_compound_nested = ${ sequence_nested }
+node_tag = { #string = string }
+// <- entity.name.function.pest
+//       ^ keyword.operator.pest
+//           ^^^^^^^^^^^^^^^^ - invalid.pest
+//                   ^ keyword.operator.pest
+//                     ^^^^^^ meta.function-call variable.function.pest
+neg_pred_with_tag = { (!neg_pred_tag_bar ~ #tag_foo = string)+ }
+//                    ^ punctuation.section.parens.begin.pest
+//                     ^ keyword.operator.pest
+//                      ^^^^^^^^^^^^^^^^ meta.function-call variable.function.pest
+//                                       ^ keyword.operator.pest
+//                                         ^^^^^^^^^^^^^^^^^ - invalid.pest
+//                                                  ^ keyword.operator.pest
+//                                                    ^^^^^^ meta.function-call variable.function.pest
+//                                                          ^ punctuation.section.parens.end.pest
+//                                                           ^ keyword.operator.pest
+neg_pred_tag_bar = _{ #tag_bar = range }
+//                 ^ keyword.operator.pest
+//                    ^^^^^^^^^^^^^^^^ - invalid.pest
+//                             ^ keyword.operator.pest
+//                               ^^^^^ meta.function-call variable.function.pest
+choice = { string | range }
+choice_prefix = { | string | range }
+//                ^ keyword.operator.pest
+//                  ^^^^^^ meta.function-call variable.function.pest
+optional = { string? }
+repeat = { string* }
+repeat_atomic = @{ string* }
+repeat_once = { string+ }
+repeat_once_atomic = @{ string+ }
+repeat_min_max = { string{2, 3} }
+//                       ^^^^^^ - invalid.pest
+//                        ^ constant.numeric.integer.pest
+//                           ^ constant.numeric.integer.pest
+repeat_min_max_atomic = @{ string{2, 3} }
+repeat_exact = { string{2} }
+//                     ^^^ - invalid.pest
+//                      ^ constant.numeric.integer.pest
+repeat_min = { string{2,} }
+//                   ^^^^ - invalid.pest
+//                    ^ constant.numeric.integer.pest
+repeat_min_atomic = @{ string{2,} }
+//                           ^^^^ - invalid.pest
+repeat_max = { string{, 2} }
+//                   ^^^^^ - invalid.pest
+//                      ^ constant.numeric.integer.pest
+repeat_max_atomic = @{ string{, 2} }
+//                           ^^^^^ - invalid.pest
+soi_at_start = { SOI ~ string }
+//               ^^^ meta.function-call support.function.pest
+repeat_mutate_stack = { (PUSH('a'..'c') ~ ",")* ~ POP ~ POP ~ POP }
+//                       ^^^^ meta.function-call support.function.pest
+//                                                ^^^ meta.function-call support.function.pest
+repeat_mutate_stack_pop_all = { (PUSH('a'..'c') ~ ",")* ~ POP_ALL }
+will_fail = { repeat_mutate_stack_pop_all ~ "FAIL" }
+stack_resume_after_fail = { will_fail | repeat_mutate_stack_pop_all }
+peek_ = { PUSH(range) ~ PUSH(range) ~ PEEK ~ PEEK }
+//        ^^^^ meta.function-call support.function.pest
+//                      ^^^^ meta.function-call support.function.pest
+peek_all = { PUSH(range) ~ PUSH(range) ~ PEEK_ALL }
+peek_slice_23 = { PUSH(range) ~ PUSH(range) ~ PUSH(range) ~ PUSH(range) ~ PUSH(range) ~ PEEK[1..-2] }
+//                                                                                          ^^^^^^^ - invalid.pest
+pop_ = { PUSH(range) ~ PUSH(range) ~ POP ~ POP }
+pop_all = { PUSH(range) ~ PUSH(range) ~ POP_ALL }
+pop_fail = { PUSH(range) ~ !POP ~ range ~ POP }
+clear_nested_snapshot = { PUSH("a") ~ ( POP? ~ "X" )? ~ POP ~ EOI }
+checkpoint_restore = ${
+    PUSH("") ~ (PUSH("a") ~ "b" ~ POP | DROP ~ "b" | POP ~ "a") ~ EOI
+//  ^^^^ meta.function-call support.function.pest
+//              ^^^^ meta.function-call support.function.pest
+//                                ^^^ meta.function-call support.function.pest
+//                                                   ^^^ meta.function-call support.function.pest
+//                                                                ^^^ meta.function-call support.function.pest
+}
+ascii_digits = { ASCII_DIGIT+ }
+//                          ^ keyword.operator.pest
+ascii_nonzero_digits = { ASCII_NONZERO_DIGIT+ }
+//                                          ^ keyword.operator.pest
+ascii_bin_digits = { ASCII_BIN_DIGIT+ }
+//                                  ^ keyword.operator.pest
+ascii_oct_digits = { ASCII_OCT_DIGIT+ }
+//                                  ^ keyword.operator.pest
+ascii_hex_digits = { ASCII_HEX_DIGIT+ }
+//                                  ^ keyword.operator.pest
+ascii_alpha_lowers = { ASCII_ALPHA_LOWER+ }
+//                                      ^ keyword.operator.pest
+ascii_alpha_uppers = { ASCII_ALPHA_UPPER+ }
+//                                      ^ keyword.operator.pest
+ascii_alphas = { ASCII_ALPHA+ }
+//                          ^ keyword.operator.pest
+ascii_alphanumerics = { ASCII_ALPHANUMERIC+ }
+//                      ^^^^^^^^^^^^^^^^^^ meta.function-call support.function.pest
+//                                        ^ keyword.operator.pest
+asciis = { ASCII+ }
+//              ^ keyword.operator.pest
+newline = { NEWLINE+ }
+//          ^^^^^^^ meta.function-call support.function.pest
+//                 ^ keyword.operator.pest
+unicode = { XID_START ~ XID_CONTINUE* }
+//                    ^ keyword.operator.pest
+//                                  ^ keyword.operator.pest
+SYMBOL = { "shadows builtin" }
+// <- entity.name.function.pest
+
+han = { HAN+ }
+hangul = { HANGUL+ }
+hiragana = { HIRAGANA+ }
+arabic = { ARABIC+ }
+emoji = { EMOJI+ }
+
+WHITESPACE = _{ " " }
+// <- support.function.override.pest
+COMMENT = _{ "$"+ }
+// <- support.function.override.pest
+
+// Line comment
+// <- comment.line.double-dash.pest punctuation.definition.comment.pest
+
+/* 1-line multiline comment */
+// <- comment.block.pest punctuation.definition.comment.pest
+
+/*
+    // Line comment inside multiline
+
+    /*
+        (Multiline inside) multiline
+//      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^ comment.block.pest comment.block.pest
+    */
+
+    WHITESPACE = _{ "hi" }
+//  ^^^^^^^^^^^^^^^^^^^^^^ comment.block.pest - support.function.override.pest
+*/

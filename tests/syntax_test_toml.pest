@@ -1,0 +1,199 @@
+// SYNTAX TEST "Pest.sublime-syntax"
+// Official example from pest-parser/pest: grammars/src/grammars/toml.pest
+
+//! TOML grammar.
+// <- comment.line.double-dash.pest punctuation.definition.comment.pest
+
+toml = { SOI ~ (table | array_table | pair)* ~ EOI }
+// <- entity.name.function.pest
+//   ^ keyword.operator.pest
+//       ^^^ meta.function-call support.function.pest
+//           ^ keyword.operator.pest
+//             ^ punctuation.section.parens.begin.pest
+//              ^^^^^ meta.function-call variable.function.pest
+//                    ^ keyword.operator.pest
+//                      ^^^^^^^^^^^ meta.function-call variable.function.pest
+//                                  ^ keyword.operator.pest
+//                                    ^^^^ meta.function-call variable.function.pest
+//                                        ^ punctuation.section.parens.end.pest
+//                                         ^ keyword.operator.pest
+//                                           ^ keyword.operator.pest
+//                                             ^^^ meta.function-call support.function.pest
+
+table       = { "[" ~ key ~ ("." ~ key)* ~ "]" ~ pair* }
+// <- entity.name.function.pest
+//          ^ keyword.operator.pest
+//              ^^^ string.quoted.double.pest
+//                  ^ keyword.operator.pest
+//                    ^^^ meta.function-call variable.function.pest
+//                        ^ keyword.operator.pest
+//                          ^ punctuation.section.parens.begin.pest
+//                           ^^^ string.quoted.double.pest
+//                               ^ keyword.operator.pest
+//                                 ^^^ meta.function-call variable.function.pest
+//                                    ^ punctuation.section.parens.end.pest
+//                                     ^ keyword.operator.pest
+//                                       ^ keyword.operator.pest
+//                                         ^^^ string.quoted.double.pest
+//                                             ^ keyword.operator.pest
+//                                               ^^^^ meta.function-call variable.function.pest
+//                                                   ^ keyword.operator.pest
+
+array_table = { "[[" ~ key ~ ("." ~ key)* ~ "]]" ~ pair* }
+// <- entity.name.function.pest
+//          ^ keyword.operator.pest
+//              ^^^^ string.quoted.double.pest
+//                                          ^^^^ string.quoted.double.pest
+
+pair        = { key ~ "=" ~ value }
+// <- entity.name.function.pest
+//          ^ keyword.operator.pest
+//              ^^^ meta.function-call variable.function.pest
+//                  ^ keyword.operator.pest
+//                    ^^^ string.quoted.double.pest
+//                        ^ keyword.operator.pest
+//                          ^^^^^ meta.function-call variable.function.pest
+
+key   = @{ identifier | string | literal }
+// <- entity.name.function.pest
+//    ^ keyword.operator.pest
+//      ^ keyword.operator.pest
+//         ^^^^^^^^^^ meta.function-call variable.function.pest
+//                    ^ keyword.operator.pest
+//                      ^^^^^^ meta.function-call variable.function.pest
+//                             ^ keyword.operator.pest
+//                               ^^^^^^^ meta.function-call variable.function.pest
+
+value = _{
+// <- entity.name.function.pest
+//    ^ keyword.operator.pest
+//      ^ keyword.operator.pest
+    inline_table |
+//  ^^^^^^^^^^^^ meta.function-call variable.function.pest
+//               ^ keyword.operator.pest
+    array |
+    multi_line_string |
+    string |
+    multi_line_literal |
+    literal |
+    date_time |
+    local_date_time |
+    full_date |
+    partial_time |
+    float |
+    integer |
+    boolean
+//  ^^^^^^^ meta.function-call variable.function.pest
+}
+
+inline_table = { "{" ~ pair ~ ("," ~ pair)* ~ ","? ~ "}" | "{" ~ "}" }
+// <- entity.name.function.pest
+//           ^ keyword.operator.pest
+//               ^^^ string.quoted.double.pest
+//                                            ^^^ string.quoted.double.pest
+//                                               ^ keyword.operator.pest
+
+array = { "[" ~ value ~ ("," ~ value)* ~ ","? ~ "]" | "[" ~ "]" }
+// <- entity.name.function.pest
+//    ^ keyword.operator.pest
+
+identifier = { (ASCII_ALPHANUMERIC | "_" | "-")+ }
+// <- entity.name.function.pest
+//         ^ keyword.operator.pest
+//             ^ punctuation.section.parens.begin.pest
+//              ^^^^^^^^^^^^^^^^^^ meta.function-call support.function.pest
+//                                 ^ keyword.operator.pest
+//                                   ^^^ string.quoted.double.pest
+//                                       ^ keyword.operator.pest
+//                                         ^^^ string.quoted.double.pest
+//                                            ^ punctuation.section.parens.end.pest
+//                                             ^ keyword.operator.pest
+
+multi_line_string  = @{ "\"\"\"" ~ inner ~ "\"\"\"" }
+// <- entity.name.function.pest
+//                 ^ keyword.operator.pest
+//                   ^ keyword.operator.pest
+//                      ^^^^^^^^ string.quoted.double.pest
+//                       ^^^^^^ constant.character.escape.pest
+//                               ^ keyword.operator.pest
+//                                 ^^^^^ meta.function-call variable.function.pest
+//                                       ^ keyword.operator.pest
+//                                         ^^^^^^^^ string.quoted.double.pest
+//                                          ^^^^^^ constant.character.escape.pest
+
+string             = @{ "\"" ~ inner ~ "\"" }
+inner              = @{ (!("\"" | "\\" | "\u{0000}" | "\u{001F}") ~ ANY)* ~ (escape ~ inner)? }
+//                                       ^^^^^^^^^^ string.quoted.double.pest
+//                                        ^^^^^^^^ constant.character.escape.pest
+//                                                    ^^^^^^^^^^ string.quoted.double.pest
+//                                                     ^^^^^^^^ constant.character.escape.pest
+multi_line_literal = @{ "'''" ~ (!"'''" ~ ANY)* ~ "'''" }
+//                      ^^^^^ string.quoted.double.pest
+//                                ^^^^^ string.quoted.double.pest
+//                                                ^^^^^ string.quoted.double.pest
+literal            = @{ "'" ~ (!"'" ~ ANY)* ~ "'" }
+
+escape  = @{ "\\" ~ ("b" | "t" | "n" | "f" | "r" | "\"" | "\\" | unicode | NEWLINE)? }
+//                                                                         ^^^^^^^ meta.function-call support.function.pest
+//                                                                                ^ punctuation.section.parens.end.pest
+//                                                                                 ^ keyword.operator.pest
+unicode = @{ "u" ~ ASCII_HEX_DIGIT{4} | "U" ~ ASCII_HEX_DIGIT{8} }
+//                                ^^^ - invalid.pest
+//                                 ^ constant.numeric.integer.pest
+//                                                           ^^^ - invalid.pest
+//                                                            ^ constant.numeric.integer.pest
+
+date_time       = ${ full_date ~ "T" ~ full_time }
+//              ^ keyword.operator.pest
+//                ^ keyword.operator.pest
+//                   ^^^^^^^^^ meta.function-call variable.function.pest
+//                             ^ keyword.operator.pest
+//                               ^^^ string.quoted.double.pest
+//                                   ^ keyword.operator.pest
+//                                     ^^^^^^^^^ meta.function-call variable.function.pest
+local_date_time = ${ full_date ~ "T" ~ partial_time }
+
+partial_time = ${ time_hour ~ ":" ~ time_minute ~ ":" ~ time_second ~ time_secfrac? }
+full_date    = ${ date_fullyear ~ "-" ~ date_month ~ "-" ~ date_mday }
+full_time    = ${ partial_time ~ time_offset }
+
+date_fullyear = @{ ASCII_DIGIT{4} }
+//                            ^^^ - invalid.pest
+//                             ^ constant.numeric.integer.pest
+date_month    = @{ ASCII_DIGIT{2} }
+date_mday     = @{ ASCII_DIGIT{2} }
+
+time_hour    = @{ ASCII_DIGIT{2} }
+time_minute  = @{ ASCII_DIGIT{2} }
+time_second  = @{ ASCII_DIGIT{2} }
+time_secfrac = @{ "." ~ ASCII_DIGIT+ }
+time_offset  = ${ "Z" | ("+" | "-") ~ time_hour ~ ":" ~ time_minute }
+
+integer = @{ ("+" | "-")? ~ int }
+float   = @{ ("+" | "-")? ~ int ~ ("." ~ digits ~ exp? | exp)? }
+int     = @{ "0" | (ASCII_NONZERO_DIGIT ~ digits?) }
+digits  = @{ (ASCII_DIGIT | ("_" ~ ASCII_DIGIT))+ }
+exp     = @{ ("E" | "e") ~ ("+" | "-")? ~ int }
+
+boolean = { "true" | "false" }
+
+WHITESPACE = _{ " " | "\t" | NEWLINE }
+// <- support.function.override.pest
+//^^^^^^^^ support.function.override.pest
+//         ^ keyword.operator.pest
+//           ^ keyword.operator.pest
+//                           ^^^^^^^ meta.function-call support.function.pest
+COMMENT    = _{ "#" ~ (!NEWLINE ~ ANY)* }
+// <- support.function.override.pest
+//^^^^^ support.function.override.pest
+//         ^ keyword.operator.pest
+//           ^ keyword.operator.pest
+//              ^^^ string.quoted.double.pest
+//                  ^ keyword.operator.pest
+//                    ^ punctuation.section.parens.begin.pest
+//                     ^ keyword.operator.pest
+//                      ^^^^^^^ meta.function-call support.function.pest
+//                              ^ keyword.operator.pest
+//                                ^^^ meta.function-call support.function.pest
+//                                   ^ punctuation.section.parens.end.pest
+//                                    ^ keyword.operator.pest

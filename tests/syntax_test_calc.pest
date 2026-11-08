@@ -1,0 +1,104 @@
+// SYNTAX TEST "Pest.sublime-syntax"
+// Official example from pest-parser/pest: derive/examples/calc.pest
+
+ program      =   { SOI ~ expr ~ EOI }
+//^^^^^^ entity.name.function.pest
+//            ^ keyword.operator.pest
+//                  ^^^ meta.function-call support.function.pest
+//                      ^ keyword.operator.pest
+//                        ^^^^ meta.function-call variable.function.pest
+//                             ^ keyword.operator.pest
+//                               ^^^ meta.function-call support.function.pest
+   expr       =   { prefix* ~ primary ~ postfix* ~ (infix ~ prefix* ~ primary ~ postfix* )* }
+// ^^^^ entity.name.function.pest
+//            ^ keyword.operator.pest
+//                  ^^^^^^ meta.function-call variable.function.pest
+//                        ^ keyword.operator.pest
+//                          ^ keyword.operator.pest
+//                            ^^^^^^^ meta.function-call variable.function.pest
+//                                    ^ keyword.operator.pest
+//                                      ^^^^^^^ meta.function-call variable.function.pest
+//                                             ^ keyword.operator.pest
+//                                               ^ keyword.operator.pest
+//                                                 ^ punctuation.section.parens.begin.pest
+//                                                  ^^^^^ meta.function-call variable.function.pest
+//                                                        ^ keyword.operator.pest
+//                                                          ^^^^^^ meta.function-call variable.function.pest
+//                                                                ^ keyword.operator.pest
+//                                                                  ^ keyword.operator.pest
+//                                                                    ^^^^^^^ meta.function-call variable.function.pest
+//                                                                            ^ keyword.operator.pest
+//                                                                              ^^^^^^^ meta.function-call variable.function.pest
+//                                                                                     ^ keyword.operator.pest
+//                                                                                       ^ punctuation.section.parens.end.pest
+//                                                                                        ^ keyword.operator.pest
+     infix    =  _{ add | sub | mul | div | pow }
+//   ^^^^^ entity.name.function.pest
+//            ^ keyword.operator.pest
+//               ^ keyword.operator.pest
+//                  ^^^ meta.function-call variable.function.pest
+//                      ^ keyword.operator.pest
+//                        ^^^ meta.function-call variable.function.pest
+//                            ^ keyword.operator.pest
+//                              ^^^ meta.function-call variable.function.pest
+//                                  ^ keyword.operator.pest
+//                                    ^^^ meta.function-call variable.function.pest
+//                                        ^ keyword.operator.pest
+//                                          ^^^ meta.function-call variable.function.pest
+       add    =   { "+" } // Addition
+//     ^^^ entity.name.function.pest
+//            ^ keyword.operator.pest
+//                  ^^^ string.quoted.double.pest
+//                        ^^ comment.line.double-dash.pest punctuation.definition.comment.pest
+//                          ^^^^^^^^^ comment.line.double-dash.pest
+       sub    =   { "-" } // Subtraction
+//     ^^^ entity.name.function.pest
+//            ^ keyword.operator.pest
+//                  ^^^ string.quoted.double.pest
+//                        ^^^^^^^^^^^ comment.line.double-dash.pest
+       mul    =   { "*" } // Multiplication
+//     ^^^ entity.name.function.pest
+//            ^ keyword.operator.pest
+//                  ^^^ string.quoted.double.pest
+//                        ^^^^^^^^^^^^^^ comment.line.double-dash.pest
+       div    =   { "/" } // Division
+//     ^^^ entity.name.function.pest
+//            ^ keyword.operator.pest
+//                  ^^^ string.quoted.double.pest
+//                        ^^^^^^^^ comment.line.double-dash.pest
+       pow    =   { "^" } // Exponentiation
+//     ^^^ entity.name.function.pest
+//            ^ keyword.operator.pest
+//                  ^^^ string.quoted.double.pest
+//                        ^^^^^^^^^^^^^^ comment.line.double-dash.pest
+     prefix   =  _{ neg }
+//   ^^^^^^ entity.name.function.pest
+//            ^ keyword.operator.pest
+//               ^ keyword.operator.pest
+//                  ^^^ meta.function-call variable.function.pest
+       neg    =   { "-" } // Negation
+//     ^^^ entity.name.function.pest
+//            ^ keyword.operator.pest
+//                  ^^^ string.quoted.double.pest
+//                        ^^^^^^^^ comment.line.double-dash.pest
+     postfix  =  _{ fac }
+//   ^^^^^^^ entity.name.function.pest
+//            ^ keyword.operator.pest
+//               ^ keyword.operator.pest
+//                  ^^^ meta.function-call variable.function.pest
+       fac    =   { "!" } // Factorial
+//     ^^^ entity.name.function.pest
+//            ^ keyword.operator.pest
+//                  ^^^ string.quoted.double.pest
+//                        ^^^^^^^^^ comment.line.double-dash.pest
+     primary  =  _{ int | "(" ~ expr ~ ")" }
+//   ^^^^^^^ entity.name.function.pest
+//            ^ keyword.operator.pest
+//               ^ keyword.operator.pest
+//                  ^^^ meta.function-call variable.function.pest
+//                      ^ keyword.operator.pest
+//                        ^^^ string.quoted.double.pest
+//                            ^ keyword.operator.pest
+//                              ^^^^ meta.function-call variable.function.pest
+//                                   ^ keyword.operator.pest
+//                                     ^^^ string.quoted.double.pest

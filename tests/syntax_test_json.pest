@@ -1,0 +1,219 @@
+// SYNTAX TEST "Pest.sublime-syntax"
+// Official example from pest-parser/pest: grammars/src/grammars/json.pest
+
+//! A parser for JSON file.
+// <- comment.line.double-dash.pest punctuation.definition.comment.pest
+
+json = { SOI ~ value ~ EOI }
+// <- entity.name.function.pest
+//   ^ keyword.operator.pest
+//       ^^^ meta.function-call support.function.pest
+//           ^ keyword.operator.pest
+//             ^^^^^ meta.function-call variable.function.pest
+//                   ^ keyword.operator.pest
+//                     ^^^ meta.function-call support.function.pest
+
+/// Matches object, e.g.: `{ "foo": "bar" }`
+// <- comment.line.double-dash.pest punctuation.definition.comment.pest
+object = { "{" ~ pair ~ ("," ~ pair)* ~ "}" | "{" ~ "}" }
+// <- entity.name.function.pest
+//     ^ keyword.operator.pest
+//         ^^^ string.quoted.double.pest
+//             ^ keyword.operator.pest
+//               ^^^^ meta.function-call variable.function.pest
+//                    ^ keyword.operator.pest
+//                      ^ punctuation.section.parens.begin.pest
+//                       ^^^ string.quoted.double.pest
+//                           ^ keyword.operator.pest
+//                             ^^^^ meta.function-call variable.function.pest
+//                                 ^ punctuation.section.parens.end.pest
+//                                  ^ keyword.operator.pest
+//                                    ^ keyword.operator.pest
+//                                      ^^^ string.quoted.double.pest
+//                                          ^ keyword.operator.pest
+//                                            ^^^ string.quoted.double.pest
+//                                                ^ keyword.operator.pest
+//                                                  ^^^ string.quoted.double.pest
+
+pair   = { string ~ ":" ~ value }
+// <- entity.name.function.pest
+//     ^ keyword.operator.pest
+//         ^^^^^^ meta.function-call variable.function.pest
+//                ^ keyword.operator.pest
+//                  ^^^ string.quoted.double.pest
+//                      ^ keyword.operator.pest
+//                        ^^^^^ meta.function-call variable.function.pest
+
+array = { "[" ~ value ~ ("," ~ value)* ~ "]" | "[" ~ "]" }
+// <- entity.name.function.pest
+//    ^ keyword.operator.pest
+//        ^^^ string.quoted.double.pest
+//            ^ keyword.operator.pest
+//              ^^^^^ meta.function-call variable.function.pest
+//                    ^ keyword.operator.pest
+//                      ^ punctuation.section.parens.begin.pest
+//                       ^^^ string.quoted.double.pest
+//                           ^ keyword.operator.pest
+//                             ^^^^^ meta.function-call variable.function.pest
+//                                  ^ punctuation.section.parens.end.pest
+//                                   ^ keyword.operator.pest
+//                                     ^ keyword.operator.pest
+//                                       ^^^ string.quoted.double.pest
+//                                           ^ keyword.operator.pest
+//                                             ^^^ string.quoted.double.pest
+//                                                 ^ keyword.operator.pest
+//                                                   ^^^ string.quoted.double.pest
+
+value = { string | number | object | array | bool | null }
+// <- entity.name.function.pest
+//    ^ keyword.operator.pest
+//        ^^^^^^ meta.function-call variable.function.pest
+//               ^ keyword.operator.pest
+//                 ^^^^^^ meta.function-call variable.function.pest
+//                        ^ keyword.operator.pest
+//                          ^^^^^^ meta.function-call variable.function.pest
+//                                 ^ keyword.operator.pest
+//                                   ^^^^^ meta.function-call variable.function.pest
+//                                         ^ keyword.operator.pest
+//                                           ^^^^ meta.function-call variable.function.pest
+//                                                ^ keyword.operator.pest
+//                                                  ^^^^ meta.function-call variable.function.pest
+
+string  = @{ "\"" ~ inner ~ "\"" }
+// <- entity.name.function.pest
+//      ^ keyword.operator.pest
+//        ^ keyword.operator.pest
+//           ^^^^ string.quoted.double.pest
+//            ^^ constant.character.escape.pest
+//                ^ keyword.operator.pest
+//                  ^^^^^ meta.function-call variable.function.pest
+//                        ^ keyword.operator.pest
+//                          ^^^^ string.quoted.double.pest
+//                           ^^ constant.character.escape.pest
+
+inner   = @{ (!("\"" | "\\" | '\u{0000}'..'\u{001F}') ~ ANY)* ~ (escape ~ inner)? }
+// <- entity.name.function.pest
+//      ^ keyword.operator.pest
+//        ^ keyword.operator.pest
+//           ^ punctuation.section.parens.begin.pest
+//            ^ keyword.operator.pest
+//             ^ punctuation.section.parens.begin.pest
+//              ^^^^ string.quoted.double.pest
+//                   ^ keyword.operator.pest
+//                     ^^^^ string.quoted.double.pest
+//                          ^ keyword.operator.pest
+//                            ^^^^^^^^^^ string.quoted.single.pest
+//                             ^^^^^^^^ constant.character.escape.pest
+//                                      ^^ keyword.operator.range.pest
+//                                        ^^^^^^^^^^ string.quoted.single.pest
+//                                         ^^^^^^^^ constant.character.escape.pest
+//                                                  ^ punctuation.section.parens.end.pest
+//                                                    ^ keyword.operator.pest
+//                                                      ^^^ meta.function-call support.function.pest
+//                                                         ^ punctuation.section.parens.end.pest
+//                                                          ^ keyword.operator.pest
+//                                                            ^ keyword.operator.pest
+//                                                              ^ punctuation.section.parens.begin.pest
+//                                                               ^^^^^^ meta.function-call variable.function.pest
+//                                                                      ^ keyword.operator.pest
+//                                                                        ^^^^^ meta.function-call variable.function.pest
+//                                                                             ^ punctuation.section.parens.end.pest
+//                                                                              ^ keyword.operator.pest
+
+escape  = @{ "\\" ~ ("\"" | "\\" | "/" | "b" | "f" | "n" | "r" | "t" | unicode) }
+// <- entity.name.function.pest
+//      ^ keyword.operator.pest
+//        ^ keyword.operator.pest
+//           ^^^^ string.quoted.double.pest
+//            ^^ constant.character.escape.pest
+//                ^ keyword.operator.pest
+//                  ^ punctuation.section.parens.begin.pest
+//                   ^^^^ string.quoted.double.pest
+//                                                                     ^^^^^^^ meta.function-call variable.function.pest
+//                                                                            ^ punctuation.section.parens.end.pest
+
+unicode = @{ "u" ~ ASCII_HEX_DIGIT{4} }
+// <- entity.name.function.pest
+//      ^ keyword.operator.pest
+//        ^ keyword.operator.pest
+//           ^^^ string.quoted.double.pest
+//               ^ keyword.operator.pest
+//                                ^^^ - invalid.pest
+//                                 ^ constant.numeric.integer.pest
+
+number = @{ "-"? ~ int ~ ("." ~ ASCII_DIGIT+ ~ exp? | exp)? }
+// <- entity.name.function.pest
+//     ^ keyword.operator.pest
+//       ^ keyword.operator.pest
+//          ^^^ string.quoted.double.pest
+//             ^ keyword.operator.pest
+//               ^ keyword.operator.pest
+//                 ^^^ meta.function-call variable.function.pest
+//                     ^ keyword.operator.pest
+//                       ^ punctuation.section.parens.begin.pest
+//                        ^^^ string.quoted.double.pest
+//                            ^ keyword.operator.pest
+//                                         ^ keyword.operator.pest
+//                                           ^ keyword.operator.pest
+//                                             ^^^ meta.function-call variable.function.pest
+//                                                ^ keyword.operator.pest
+//                                                  ^ keyword.operator.pest
+//                                                    ^^^ meta.function-call variable.function.pest
+//                                                       ^ punctuation.section.parens.end.pest
+//                                                        ^ keyword.operator.pest
+
+int    = @{ "0" | ASCII_NONZERO_DIGIT ~ ASCII_DIGIT* }
+// <- entity.name.function.pest
+//     ^ keyword.operator.pest
+//       ^ keyword.operator.pest
+//          ^^^ string.quoted.double.pest
+//              ^ keyword.operator.pest
+//                                    ^ keyword.operator.pest
+//                                                 ^ keyword.operator.pest
+
+exp    = @{ ("E" | "e") ~ ("+" | "-")? ~ ASCII_DIGIT+ }
+// <- entity.name.function.pest
+//     ^ keyword.operator.pest
+//       ^ keyword.operator.pest
+//          ^ punctuation.section.parens.begin.pest
+//           ^^^ string.quoted.double.pest
+//               ^ keyword.operator.pest
+//                 ^^^ string.quoted.double.pest
+//                    ^ punctuation.section.parens.end.pest
+//                      ^ keyword.operator.pest
+//                        ^ punctuation.section.parens.begin.pest
+//                         ^^^ string.quoted.double.pest
+//                             ^ keyword.operator.pest
+//                               ^^^ string.quoted.double.pest
+//                                  ^ punctuation.section.parens.end.pest
+//                                   ^ keyword.operator.pest
+//                                     ^ keyword.operator.pest
+//                                                  ^ keyword.operator.pest
+
+bool = { "true" | "false" }
+// <- entity.name.function.pest
+//   ^ keyword.operator.pest
+//       ^^^^^^ string.quoted.double.pest
+//              ^ keyword.operator.pest
+//                ^^^^^^^ string.quoted.double.pest
+
+null = { "null" }
+// <- entity.name.function.pest
+//   ^ keyword.operator.pest
+//       ^^^^^^ string.quoted.double.pest
+
+WHITESPACE = _{ " " | "\t" | "\r" | "\n" }
+// <- support.function.override.pest
+//^^^^^^^^ support.function.override.pest
+//         ^ keyword.operator.pest
+//           ^ keyword.operator.pest
+//              ^^^ string.quoted.double.pest
+//                  ^ keyword.operator.pest
+//                    ^^^^ string.quoted.double.pest
+//                     ^^ constant.character.escape.pest
+//                         ^ keyword.operator.pest
+//                           ^^^^ string.quoted.double.pest
+//                            ^^ constant.character.escape.pest
+//                                ^ keyword.operator.pest
+//                                  ^^^^ string.quoted.double.pest
+//                                   ^^ constant.character.escape.pest

@@ -1,0 +1,147 @@
+// SYNTAX TEST "Pest.sublime-syntax"
+// Official example from pest-parser/pest: grammars/src/grammars/http.pest
+
+//! Simplified HTTP request grammar.
+// <- comment.line.double-dash.pest punctuation.definition.comment.pest
+//^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ comment.line.double-dash.pest
+
+http = { SOI ~ (delimiter | request)* ~ EOI}
+// <- entity.name.function.pest
+//   ^ keyword.operator.pest
+//       ^^^ meta.function-call support.function.pest
+//           ^ keyword.operator.pest
+//             ^ punctuation.section.parens.begin.pest
+//              ^^^^^^^^^ meta.function-call variable.function.pest
+//                        ^ keyword.operator.pest
+//                          ^^^^^^^ meta.function-call variable.function.pest
+//                                 ^ punctuation.section.parens.end.pest
+//                                  ^ keyword.operator.pest
+//                                    ^ keyword.operator.pest
+//                                      ^^^ meta.function-call support.function.pest
+
+request = {
+// <- entity.name.function.pest
+//      ^ keyword.operator.pest
+    request_line ~
+//  ^^^^^^^^^^^^ meta.function-call variable.function.pest
+//               ^ keyword.operator.pest
+    headers? ~
+//  ^^^^^^^ meta.function-call variable.function.pest
+//         ^ keyword.operator.pest
+//           ^ keyword.operator.pest
+    NEWLINE
+//  ^^^^^^^ meta.function-call support.function.pest
+}
+
+request_line = _{ method ~ " "+ ~ uri ~ " "+ ~ "HTTP/" ~ version ~ NEWLINE }
+// <- entity.name.function.pest
+//           ^ keyword.operator.pest
+//             ^ keyword.operator.pest
+//                ^^^^^^ meta.function-call variable.function.pest
+//                       ^ keyword.operator.pest
+//                         ^^^ string.quoted.double.pest
+//                            ^ keyword.operator.pest
+//                              ^ keyword.operator.pest
+//                                ^^^ meta.function-call variable.function.pest
+//                                    ^ keyword.operator.pest
+//                                      ^^^ string.quoted.double.pest
+//                                         ^ keyword.operator.pest
+//                                           ^ keyword.operator.pest
+//                                             ^^^^^^^ string.quoted.double.pest
+//                                                     ^ keyword.operator.pest
+//                                                       ^^^^^^^ meta.function-call variable.function.pest
+//                                                               ^ keyword.operator.pest
+//                                                                 ^^^^^^^ meta.function-call support.function.pest
+
+uri = { (!whitespace ~ ANY)+ }
+// <- entity.name.function.pest
+//  ^ keyword.operator.pest
+//      ^ punctuation.section.parens.begin.pest
+//       ^ keyword.operator.pest
+//        ^^^^^^^^^^ meta.function-call variable.function.pest
+//                   ^ keyword.operator.pest
+//                     ^^^ meta.function-call support.function.pest
+//                        ^ punctuation.section.parens.end.pest
+//                         ^ keyword.operator.pest
+
+method = { ("GET" | "DELETE" | "POST" | "PUT") }
+// <- entity.name.function.pest
+//     ^ keyword.operator.pest
+//         ^ punctuation.section.parens.begin.pest
+//          ^^^^^ string.quoted.double.pest
+//                ^ keyword.operator.pest
+//                  ^^^^^^^^ string.quoted.double.pest
+//                           ^ keyword.operator.pest
+//                             ^^^^^^ string.quoted.double.pest
+//                                    ^ keyword.operator.pest
+//                                      ^^^^^ string.quoted.double.pest
+//                                           ^ punctuation.section.parens.end.pest
+
+version = { (ASCII_DIGIT | ".")+ }
+// <- entity.name.function.pest
+//      ^ keyword.operator.pest
+//          ^ punctuation.section.parens.begin.pest
+//                       ^ keyword.operator.pest
+//                         ^^^ string.quoted.double.pest
+//                            ^ punctuation.section.parens.end.pest
+//                             ^ keyword.operator.pest
+
+whitespace = _{ " " | "\t" }
+// <- entity.name.function.pest
+//         ^ keyword.operator.pest
+//           ^ keyword.operator.pest
+//              ^^^ string.quoted.double.pest
+//                  ^ keyword.operator.pest
+//                    ^^^^ string.quoted.double.pest
+//                     ^^ constant.character.escape.pest
+
+headers = { header+ }
+// <- entity.name.function.pest
+//      ^ keyword.operator.pest
+//          ^^^^^^ meta.function-call variable.function.pest
+//                ^ keyword.operator.pest
+
+header = { header_name ~ ":" ~ whitespace ~ header_value ~ NEWLINE }
+// <- entity.name.function.pest
+//     ^ keyword.operator.pest
+//         ^^^^^^^^^^^ meta.function-call variable.function.pest
+//                     ^ keyword.operator.pest
+//                       ^^^ string.quoted.double.pest
+//                           ^ keyword.operator.pest
+//                             ^^^^^^^^^^ meta.function-call variable.function.pest
+//                                        ^ keyword.operator.pest
+//                                          ^^^^^^^^^^^^ meta.function-call variable.function.pest
+//                                                       ^ keyword.operator.pest
+//                                                         ^^^^^^^ meta.function-call support.function.pest
+
+header_name = { (!(NEWLINE | ":") ~ ANY)+ }
+// <- entity.name.function.pest
+//          ^ keyword.operator.pest
+//              ^ punctuation.section.parens.begin.pest
+//               ^ keyword.operator.pest
+//                ^ punctuation.section.parens.begin.pest
+//                 ^^^^^^^ meta.function-call support.function.pest
+//                         ^ keyword.operator.pest
+//                           ^^^ string.quoted.double.pest
+//                              ^ punctuation.section.parens.end.pest
+//                                ^ keyword.operator.pest
+//                                  ^^^ meta.function-call support.function.pest
+//                                     ^ punctuation.section.parens.end.pest
+//                                      ^ keyword.operator.pest
+
+header_value = { (!NEWLINE ~ ANY)+ }
+// <- entity.name.function.pest
+//           ^ keyword.operator.pest
+//               ^ punctuation.section.parens.begin.pest
+//                ^ keyword.operator.pest
+//                 ^^^^^^^ meta.function-call support.function.pest
+//                         ^ keyword.operator.pest
+//                           ^^^ meta.function-call support.function.pest
+//                              ^ punctuation.section.parens.end.pest
+//                               ^ keyword.operator.pest
+
+delimiter = { NEWLINE+ }
+// <- entity.name.function.pest
+//        ^ keyword.operator.pest
+//            ^^^^^^^ meta.function-call support.function.pest
+//                   ^ keyword.operator.pest
