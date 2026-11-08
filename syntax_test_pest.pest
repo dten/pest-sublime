@@ -1,0 +1,68 @@
+// SYNTAX TEST "Pest.sublime-syntax"
+
+a = { x{2} }
+// <- entity.name.function.pest
+//^ keyword.operator.pest
+//    ^ meta.function-call variable.function.pest
+//     ^^^ - invalid.pest
+//      ^ constant.numeric.integer.pest
+//         ^ - invalid.pest
+
+b = { x{2,3} }
+// <- entity.name.function.pest
+//^ keyword.operator.pest
+//    ^ meta.function-call variable.function.pest
+//     ^^^^^ - invalid.pest
+//      ^ constant.numeric.integer.pest
+//        ^ constant.numeric.integer.pest
+//           ^ - invalid.pest
+
+c = { x{2,} }
+// <- entity.name.function.pest
+//^ keyword.operator.pest
+//    ^ meta.function-call variable.function.pest
+//     ^^^^ - invalid.pest
+//      ^ constant.numeric.integer.pest
+//          ^ - invalid.pest
+
+d = { x{,3} }
+// <- entity.name.function.pest
+//^ keyword.operator.pest
+//    ^ meta.function-call variable.function.pest
+//     ^^^^ - invalid.pest
+//       ^ constant.numeric.integer.pest
+//          ^ - invalid.pest
+
+e = { "x"{2,} ~ b{,3} }
+// <- entity.name.function.pest
+//^ keyword.operator.pest
+//    ^^^ string.quoted.double.pest
+//       ^^^^ - invalid.pest
+//        ^ constant.numeric.integer.pest
+//            ^ keyword.operator.pest - invalid.pest
+//              ^ meta.function-call variable.function.pest
+//               ^^^^ - invalid.pest
+//                 ^ constant.numeric.integer.pest
+//                    ^ - invalid.pest
+
+f = { x{2, 3} ~ y{2, } ~ z{, 3} }
+//     ^^^^^^ - invalid.pest
+//      ^ constant.numeric.integer.pest
+//         ^ constant.numeric.integer.pest
+//            ^ keyword.operator.pest
+//               ^^^^^ - invalid.pest
+//                ^ constant.numeric.integer.pest
+//                     ^ keyword.operator.pest
+//                        ^^^^^ - invalid.pest
+//                           ^ constant.numeric.integer.pest
+//                              ^ - invalid.pest
+
+invalid_empty = { x{} }
+//                 ^ - invalid.pest
+//                  ^ invalid.pest
+//                    ^ - invalid.pest
+
+invalid_comma = { x{,} }
+//                 ^^ - invalid.pest
+//                   ^ invalid.pest
+//                     ^ - invalid.pest
