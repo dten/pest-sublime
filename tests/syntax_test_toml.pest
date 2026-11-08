@@ -138,8 +138,10 @@ escape  = @{ "\\" ~ ("b" | "t" | "n" | "f" | "r" | "\"" | "\\" | unicode | NEWLI
 //                                                                                ^ punctuation.section.parens.end.pest
 //                                                                                 ^ keyword.operator.pest
 unicode = @{ "u" ~ ASCII_HEX_DIGIT{4} | "U" ~ ASCII_HEX_DIGIT{8} }
+//                 ^^^^^^^^^^^^^^^ meta.function-call support.function.pest
 //                                ^^^ - invalid.pest
 //                                 ^ constant.numeric.integer.pest
+//                                            ^^^^^^^^^^^^^^^ meta.function-call support.function.pest
 //                                                           ^^^ - invalid.pest
 //                                                            ^ constant.numeric.integer.pest
 
@@ -158,6 +160,7 @@ full_date    = ${ date_fullyear ~ "-" ~ date_month ~ "-" ~ date_mday }
 full_time    = ${ partial_time ~ time_offset }
 
 date_fullyear = @{ ASCII_DIGIT{4} }
+//                 ^^^^^^^^^^^ meta.function-call support.function.pest
 //                            ^^^ - invalid.pest
 //                             ^ constant.numeric.integer.pest
 date_month    = @{ ASCII_DIGIT{2} }

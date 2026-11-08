@@ -138,6 +138,7 @@ unicode = @{ "u" ~ ASCII_HEX_DIGIT{4} }
 //        ^ keyword.operator.pest
 //           ^^^ string.quoted.double.pest
 //               ^ keyword.operator.pest
+//                 ^^^^^^^^^^^^^^^ meta.function-call support.function.pest
 //                                ^^^ - invalid.pest
 //                                 ^ constant.numeric.integer.pest
 
@@ -153,6 +154,7 @@ number = @{ "-"? ~ int ~ ("." ~ ASCII_DIGIT+ ~ exp? | exp)? }
 //                       ^ punctuation.section.parens.begin.pest
 //                        ^^^ string.quoted.double.pest
 //                            ^ keyword.operator.pest
+//                              ^^^^^^^^^^^ meta.function-call support.function.pest
 //                                         ^ keyword.operator.pest
 //                                           ^ keyword.operator.pest
 //                                             ^^^ meta.function-call variable.function.pest
@@ -168,7 +170,9 @@ int    = @{ "0" | ASCII_NONZERO_DIGIT ~ ASCII_DIGIT* }
 //       ^ keyword.operator.pest
 //          ^^^ string.quoted.double.pest
 //              ^ keyword.operator.pest
+//                ^^^^^^^^^^^^^^^^^^^ meta.function-call support.function.pest
 //                                    ^ keyword.operator.pest
+//                                      ^^^^^^^^^^^ meta.function-call support.function.pest
 //                                                 ^ keyword.operator.pest
 
 exp    = @{ ("E" | "e") ~ ("+" | "-")? ~ ASCII_DIGIT+ }
@@ -188,6 +192,7 @@ exp    = @{ ("E" | "e") ~ ("+" | "-")? ~ ASCII_DIGIT+ }
 //                                  ^ punctuation.section.parens.end.pest
 //                                   ^ keyword.operator.pest
 //                                     ^ keyword.operator.pest
+//                                       ^^^^^^^^^^^ meta.function-call support.function.pest
 //                                                  ^ keyword.operator.pest
 
 bool = { "true" | "false" }

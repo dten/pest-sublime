@@ -52,13 +52,26 @@ compound_atomic = ${ SOI ~ ident ~ EOI }
 //                                                            ^ keyword.operator.pest
 //                                                              ^^^^^^^ meta.function-call support.function.pest
 
-push_pop = { PUSH(ident) ~ POP }
+push_pop = { PUSH(ident) ~ PUSH_LITERAL("a") ~ PEEK ~ PEEK_ALL ~ POP ~ POP_ALL ~ DROP }
 //           ^^^^ meta.function-call support.function.pest
 //               ^ punctuation.section.parens.begin.pest
 //                ^^^^^ meta.function-call variable.function.pest
 //                     ^ punctuation.section.parens.end.pest
 //                       ^ keyword.operator.pest
-//                         ^^^ meta.function-call support.function.pest
+//                         ^^^^^^^^^^^^ meta.function-call support.function.pest
+//                                     ^ punctuation.section.parens.begin.pest
+//                                      ^^^ string.quoted.double.pest
+//                                         ^ punctuation.section.parens.end.pest
+//                                           ^ keyword.operator.pest
+//                                             ^^^^ meta.function-call support.function.pest
+//                                                  ^ keyword.operator.pest
+//                                                    ^^^^^^^^ meta.function-call support.function.pest
+//                                                             ^ keyword.operator.pest
+//                                                               ^^^ meta.function-call support.function.pest
+//                                                                   ^ keyword.operator.pest
+//                                                                     ^^^^^^^ meta.function-call support.function.pest
+//                                                                             ^ keyword.operator.pest
+//                                                                               ^^^^ meta.function-call support.function.pest
 
 multiline_rule = {
 // <- entity.name.function.pest

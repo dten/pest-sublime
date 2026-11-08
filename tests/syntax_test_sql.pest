@@ -148,6 +148,7 @@ Identifier = @{ DoubleQuotedIdentifier | IdentifierInner  }
     DoubleQuotedIdentifier = @{ ("\"" ~ IdentifierInner ~ "\"") }
     IdentifierInner = @{ !(Keyword ~ ("(" | WHITESPACE | "," | EOF)) ~ (IdentifierNonDigit ~ (IdentifierNonDigit | ASCII_DIGIT)*) }
 //                                          ^^^^^^^^^^ meta.function-call support.function.pest
+//                                                                                                                 ^^^^^^^^^^^ meta.function-call support.function.pest
         IdentifierNonDigit = _{ ('a'..'z' | 'A' .. 'Z' | 'А' .. 'Я' | 'а' .. 'я' | "-" | "_") }
 //                               ^^^ string.quoted.single.pest
 //                                  ^^ keyword.operator.range.pest
@@ -194,9 +195,13 @@ Expr = { ExprAtomValue ~ (ExprInfixOp ~ ExprAtomValue)* }
                 False    = { ^"false" }
                 Null     = { ^"null" }
                 Decimal = @{ Integer ~ ("." ~ ASCII_DIGIT*) }
+//                                            ^^^^^^^^^^^ meta.function-call support.function.pest
                 Double = @{ Integer ~ ("." ~ ASCII_DIGIT*)? ~ (^"e" ~ Integer) }
+//                                           ^^^^^^^^^^^ meta.function-call support.function.pest
                 Integer = @{ ("+" | "-")? ~ ASCII_DIGIT+ }
+//                                          ^^^^^^^^^^^ meta.function-call support.function.pest
                 Unsigned = @{ ASCII_DIGIT+ }
+//                            ^^^^^^^^^^^ meta.function-call support.function.pest
                 SingleQuotedString = @{ OnlyQuotesSequence | AnythingButQuotesSequence }
                     OnlyQuotesSequence = @{ ("'" ~ "'")+ }
                     AnythingButQuotesSequence = @{ "'" ~ (!("'") ~ ANY)* ~ "'" }

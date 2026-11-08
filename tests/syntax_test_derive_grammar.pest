@@ -100,16 +100,22 @@ repeat_mutate_stack = { (PUSH('a'..'c') ~ ",")* ~ POP ~ POP ~ POP }
 //                       ^^^^ meta.function-call support.function.pest
 //                                                ^^^ meta.function-call support.function.pest
 repeat_mutate_stack_pop_all = { (PUSH('a'..'c') ~ ",")* ~ POP_ALL }
+//                                                        ^^^^^^^ meta.function-call support.function.pest
 will_fail = { repeat_mutate_stack_pop_all ~ "FAIL" }
 stack_resume_after_fail = { will_fail | repeat_mutate_stack_pop_all }
 peek_ = { PUSH(range) ~ PUSH(range) ~ PEEK ~ PEEK }
 //        ^^^^ meta.function-call support.function.pest
 //                      ^^^^ meta.function-call support.function.pest
+//                                    ^^^^ meta.function-call support.function.pest
+//                                           ^^^^ meta.function-call support.function.pest
 peek_all = { PUSH(range) ~ PUSH(range) ~ PEEK_ALL }
+//                                       ^^^^^^^^ meta.function-call support.function.pest
 peek_slice_23 = { PUSH(range) ~ PUSH(range) ~ PUSH(range) ~ PUSH(range) ~ PUSH(range) ~ PEEK[1..-2] }
+//                                                                                      ^^^^ meta.function-call support.function.pest
 //                                                                                          ^^^^^^^ - invalid.pest
 pop_ = { PUSH(range) ~ PUSH(range) ~ POP ~ POP }
 pop_all = { PUSH(range) ~ PUSH(range) ~ POP_ALL }
+//                                      ^^^^^^^ meta.function-call support.function.pest
 pop_fail = { PUSH(range) ~ !POP ~ range ~ POP }
 clear_nested_snapshot = { PUSH("a") ~ ( POP? ~ "X" )? ~ POP ~ EOI }
 checkpoint_restore = ${
@@ -117,44 +123,61 @@ checkpoint_restore = ${
 //  ^^^^ meta.function-call support.function.pest
 //              ^^^^ meta.function-call support.function.pest
 //                                ^^^ meta.function-call support.function.pest
+//                                      ^^^^ meta.function-call support.function.pest
 //                                                   ^^^ meta.function-call support.function.pest
 //                                                                ^^^ meta.function-call support.function.pest
 }
 ascii_digits = { ASCII_DIGIT+ }
+//               ^^^^^^^^^^^ meta.function-call support.function.pest
 //                          ^ keyword.operator.pest
 ascii_nonzero_digits = { ASCII_NONZERO_DIGIT+ }
+//                       ^^^^^^^^^^^^^^^^^^^ meta.function-call support.function.pest
 //                                          ^ keyword.operator.pest
 ascii_bin_digits = { ASCII_BIN_DIGIT+ }
+//                   ^^^^^^^^^^^^^^^ meta.function-call support.function.pest
 //                                  ^ keyword.operator.pest
 ascii_oct_digits = { ASCII_OCT_DIGIT+ }
+//                   ^^^^^^^^^^^^^^^ meta.function-call support.function.pest
 //                                  ^ keyword.operator.pest
 ascii_hex_digits = { ASCII_HEX_DIGIT+ }
+//                   ^^^^^^^^^^^^^^^ meta.function-call support.function.pest
 //                                  ^ keyword.operator.pest
 ascii_alpha_lowers = { ASCII_ALPHA_LOWER+ }
+//                     ^^^^^^^^^^^^^^^^^ meta.function-call support.function.pest
 //                                      ^ keyword.operator.pest
 ascii_alpha_uppers = { ASCII_ALPHA_UPPER+ }
+//                     ^^^^^^^^^^^^^^^^^ meta.function-call support.function.pest
 //                                      ^ keyword.operator.pest
 ascii_alphas = { ASCII_ALPHA+ }
+//               ^^^^^^^^^^^ meta.function-call support.function.pest
 //                          ^ keyword.operator.pest
 ascii_alphanumerics = { ASCII_ALPHANUMERIC+ }
 //                      ^^^^^^^^^^^^^^^^^^ meta.function-call support.function.pest
 //                                        ^ keyword.operator.pest
 asciis = { ASCII+ }
+//         ^^^^^ meta.function-call support.function.pest
 //              ^ keyword.operator.pest
 newline = { NEWLINE+ }
 //          ^^^^^^^ meta.function-call support.function.pest
 //                 ^ keyword.operator.pest
 unicode = { XID_START ~ XID_CONTINUE* }
+//          ^^^^^^^^^ meta.function-call support.function.pest
 //                    ^ keyword.operator.pest
+//                      ^^^^^^^^^^^^ meta.function-call support.function.pest
 //                                  ^ keyword.operator.pest
 SYMBOL = { "shadows builtin" }
 // <- entity.name.function.pest
 
 han = { HAN+ }
+//      ^^^ meta.function-call support.function.pest
 hangul = { HANGUL+ }
+//         ^^^^^^ meta.function-call support.function.pest
 hiragana = { HIRAGANA+ }
+//           ^^^^^^^^ meta.function-call support.function.pest
 arabic = { ARABIC+ }
+//         ^^^^^^ meta.function-call support.function.pest
 emoji = { EMOJI+ }
+//        ^^^^^ meta.function-call support.function.pest
 
 WHITESPACE = _{ " " }
 // <- support.function.override.pest

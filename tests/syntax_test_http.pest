@@ -81,6 +81,7 @@ version = { (ASCII_DIGIT | ".")+ }
 // <- entity.name.function.pest
 //      ^ keyword.operator.pest
 //          ^ punctuation.section.parens.begin.pest
+//           ^^^^^^^^^^^ meta.function-call support.function.pest
 //                       ^ keyword.operator.pest
 //                         ^^^ string.quoted.double.pest
 //                            ^ punctuation.section.parens.end.pest
