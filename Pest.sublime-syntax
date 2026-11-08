@@ -19,21 +19,33 @@ variables:
   escaped_char: '\\("|\\|r|n|t|0|''|x\h{2}|u\{\h{2,6}\})'
 contexts:
   main:
+    - match: (//!).*$\n?
+      scope: comment.line.double-dash.pest
+      captures:
+        1: punctuation.definition.comment.pest
+    - match: (?=///)
+      set: main_rules
     - include: comments
     - include: rule_decl
-    - match: \S
-      scope: invalid.pest
+
+  main_rules:
+    - match: (///).*$\n?
+      scope: comment.line.double-dash.pest
+      captures:
+        1: punctuation.definition.comment.pest
+    - include: comments
+    - include: rule_decl
 
   rule_decl:
     - match: '{{replaceable_support_idents}}'
       scope: support.function.override.pest
-      set: [rule_def, must_be_equals]
+      set: [main_rules, rule_def, must_be_equals]
     - match: '{{forbidden_rule_idents}}'
       scope: invalid.pest
-      set: [rule_def, must_be_equals]
+      set: [main_rules, rule_def, must_be_equals]
     - match: '{{ident}}'
       scope: entity.name.function.pest
-      set: [rule_def, must_be_equals]
+      set: [main_rules, rule_def, must_be_equals]
     - match: \S
       scope: invalid.pest
 
@@ -55,14 +67,12 @@ contexts:
   rule_brace:
     - include: comments
     - match: '\{'
-      set: [rule_close, expr_start]
+      set: [rule_close, rule_start]
     - match: \S
       scope: invalid.pest
 
   rule_close:
-    - match: '\}'
-      pop: true
-    - match: ''
+    - match: '\}?'
       pop: true
 
   paren_close:
@@ -75,64 +85,53 @@ contexts:
     - match: ''
       pop: true
 
-  expr_start:
+  rule_start:
     - include: comments
     - match: '\|'
       scope: keyword.operator.pest
       set: expr_expect_term
-    - match: '~'
-      scope: invalid.pest
-      set: expr_expect_term
-    - match: '[})]'
-      scope: invalid.pest
-      pop: true
-    - include: expr_term
+    - include: expr_expect_term
 
   expr_expect_term:
     - include: comments
-    - match: '[~|]'
+    - match: '#[_a-zA-Z]\w*(?=(?:\s|/\*.*?\*/)*=)'
+      scope: entity.name.tag.pest
+      set: [expr_expect_node, must_be_equals]
+    - include: expr_expect_node
+
+  expr_expect_node:
+    - include: comments
+    - match: '[~|]|#[_a-zA-Z]\w*(?:\s*=)?'
       scope: invalid.pest
     - match: '[})]'
       scope: invalid.pest
       pop: true
-    - include: expr_term
-
-  expr_term:
+    - match: '[!&]'
+      scope: keyword.operator.pest
+      set: expr_expect_node
     - match: '(?=^\s*{{ident}}\s*=)'
       pop: true
-    - match: '(\^)\s*(?=")'
-      captures:
-        1: keyword.operator.pest
-      set: expr_expect_term
+    - match: '\^'
+      scope: keyword.operator.pest
+      set: [expr_after_term, trailing, insensitive_string]
     - match: '"'
       scope: punctuation.definition.string.begin.pest
       set: [expr_after_term, trailing, double_quoted_string]
     - match: ''''
       scope: punctuation.definition.string.begin.pest
       set: [expr_after_term, char_after, char_literal]
-    - match: '(#{{ident}})\s*(=)'
-      captures:
-        1: entity.name.tag.pest
-        2: keyword.operator.pest
-      set: expr_expect_term
-    - match: '[!&]'
-      scope: keyword.operator.pest
-      set: expr_expect_term
-    - match: '\b(PEEK)\s*(\[)'
-      captures:
-        1: meta.function-call support.function.pest
-      set: [expr_after_term, trailing, peek_slice]
-    - match: '\b(PUSH_LITERAL)\s*(\()'
-      captures:
-        1: meta.function-call support.function.pest
-        2: punctuation.section.parens.begin.pest
-      set: [expr_after_term, trailing, push_literal_arg]
-    - match: '\b(PUSH)\s*(\()|(\()'
-      captures:
-        1: meta.function-call support.function.pest
-        2: punctuation.section.parens.begin.pest
-        3: punctuation.section.parens.begin.pest
-      set: [expr_after_term, trailing, paren_close, expr_start]
+    - match: '\bPEEK\b'
+      scope: meta.function-call support.function.pest
+      set: [expr_after_term, peek_or_trailing]
+    - match: '\bPUSH_LITERAL(?=(?:\s|/\*.*?\*/)*\()'
+      scope: meta.function-call support.function.pest
+      set: [expr_after_term, trailing, push_literal_arg, open_paren]
+    - match: '\bPUSH(?=(?:\s|/\*.*?\*/)*\()'
+      scope: meta.function-call support.function.pest
+      set: [expr_after_term, trailing, paren_close, expr_expect_term, open_paren]
+    - match: '\('
+      scope: punctuation.section.parens.begin.pest
+      set: [expr_after_term, trailing, paren_close, expr_expect_term]
     - match: '{{support_idents}}'
       scope: meta.function-call support.function.pest
       set: [expr_after_term, trailing]
@@ -142,8 +141,6 @@ contexts:
     - match: '[^\s~|}()]+'
       scope: invalid.pest
       set: [expr_after_term, trailing]
-    - match: \S
-      scope: invalid.pest
 
   expr_after_term:
     - include: comments
@@ -152,12 +149,29 @@ contexts:
     - match: '[~|]'
       scope: keyword.operator.pest
       set: expr_expect_term
-    - match: '"(?:[^"\\]|\\.)*"'
+    - match: '"(?:[^"\\]|\\.)*"|''(?:[^''\\]|\\.)*''|\S'
       scope: invalid.pest
-    - match: '''(?:[^''\\]|\\.)*'''
+
+  insensitive_string:
+    - include: comments
+    - match: '"'
+      scope: punctuation.definition.string.begin.pest
+      set: double_quoted_string
+    - match: '''(?:[^''\\]|\\.)*''|[^\s~|}()]+|\S'
       scope: invalid.pest
-    - match: \S
-      scope: invalid.pest
+      pop: true
+
+  peek_or_trailing:
+    - include: comments
+    - match: '\['
+      set: [trailing, peek_slice]
+    - include: trailing
+
+  open_paren:
+    - include: comments
+    - match: '\('
+      scope: punctuation.section.parens.begin.pest
+      pop: true
 
   escaped-char:
     - match: '{{escaped_char}}'
@@ -177,10 +191,8 @@ contexts:
     - match: ''''
       scope: punctuation.definition.string.end.pest invalid.pest
       pop: true
-    - match: '[^''\r\n]+(?=[^''\r\n]*$)'
+    - match: '[^''\r\n]+(?=[^''\r\n]*$)|$'
       scope: invalid.pest
-      pop: true
-    - match: '$'
       pop: true
     - match: '{{escaped_char}}'
       scope: constant.character.escape.pest
@@ -242,10 +254,12 @@ contexts:
       scope: invalid.pest
 
   comments:
-    - match: (//).*$\n?
+    - match: (//)(?![/!]).*$\n?
       scope: comment.line.double-dash.pest
       captures:
         1: punctuation.definition.comment.pest
+    - match: //[/!].*$\n?
+      scope: invalid.pest
     - include: block_comment
 
   block_comment:
