@@ -6,7 +6,7 @@ file_extensions:
   - pest
 scope: source.pest.pest
 variables:
-  ident: '\b\w+\b'
+  ident: '\b[_a-zA-Z]\w*\b'
   trailing_op: '[*?+]'
   replaceable_support_idents: '\b(WHITESPACE|COMMENT)\b'
   builtin_rules: '\b(ANY|DROP|EOI|NEWLINE|PEEK_ALL|PEEK|POP_ALL|POP|PUSH_LITERAL|PUSH|SOI)\b'
@@ -24,18 +24,17 @@ contexts:
       scope: invalid.pest
 
   rule_decl:
-    - match: '^\s*({{replaceable_support_idents}})'
-      captures:
-        1: support.function.override.pest
+    - match: '{{replaceable_support_idents}}'
+      scope: support.function.override.pest
       set: [rule_def, must_be_equals]
-    - match: '^\s*({{ident}})'
-      captures:
-        1: entity.name.function.pest
+    - match: '{{ident}}'
+      scope: entity.name.function.pest
       set: [rule_def, must_be_equals]
     - match: \S
       scope: invalid.pest
 
   must_be_equals:
+    - include: comments
     - match: '='
       scope: keyword.operator.pest
       pop: true
@@ -43,26 +42,39 @@ contexts:
       scope: invalid.pest
 
   rule_def:
-    - match: '([@_$!]?)\{'
-      captures:
-        1: keyword.operator.pest
+    - include: comments
+    - match: '[@_$!]'
+      scope: keyword.operator.pest
+      set:
+        - include: comments
+        - match: '\{'
+          set:
+            - match: '\}'
+              pop: true
+            - include: rule_def_inner
+        - match: \S
+          scope: invalid.pest
+    - match: '\{'
       set:
         - match: '\}'
           pop: true
         - include: rule_def_inner
+    - match: \S
+      scope: invalid.pest
 
   escaped-char:
     - match: '{{escaped_char}}'
       scope: constant.character.escape.pest
-    - match: '\\.'
+    - match: '\\(?:.|$)'
       scope: invalid.pest
 
   rule_def_inner: 
     - include: comments
-    - match: '(\^?)(")'
+    - match: '(\^)\s*(?=")'
       captures:
         1: keyword.operator.pest
-        2: punctuation.definition.string.begin.pest
+    - match: '"'
+      scope: punctuation.definition.string.begin.pest
       push:
         - meta_scope: string.quoted.double.pest
         - include: escaped-char
@@ -77,10 +89,12 @@ contexts:
         - match: ''''
           scope: punctuation.definition.string.end.pest
           set:
+            - include: comments
             - match: '\s*(\.\.)'
               captures:
                 1: keyword.operator.range.pest
-              push:
+              set:
+              - include: comments
               - match: ''''
                 scope: punctuation.definition.string.begin.pest
                 set:
@@ -97,13 +111,10 @@ contexts:
       captures:
         1: entity.name.tag.pest
         2: keyword.operator.pest
-    - match: '\b(PEEK)\s*(\[)\s*(-?\d+)?\s*(\.\.)\s*(-?\d+)?\s*(\])'
+    - match: '\b(PEEK)\s*(\[)'
       captures:
         1: meta.function-call support.function.pest
-        3: constant.numeric.integer.pest
-        4: keyword.operator.range.pest
-        5: constant.numeric.integer.pest
-      push: trailing
+      push: [trailing, peek_slice]
     - match: '{{support_idents}}'
       scope: meta.function-call support.function.pest
       push: trailing
@@ -144,7 +155,53 @@ contexts:
           scope: punctuation.definition.comment.pest
           pop: true
 
+  peek_slice:
+    - include: comments
+    - match: '\]'
+      scope: invalid.pest
+      pop: true
+    - match: '\.\.'
+      scope: keyword.operator.range.pest
+      set: peek_slice_after_dots
+    - match: '(?:-0*[1-9]\d*|\d+)'
+      scope: constant.numeric.integer.pest
+      set: peek_slice_need_dots
+    - match: \S
+      scope: invalid.pest
+      set: peek_slice_end
+
+  peek_slice_need_dots:
+    - include: comments
+    - match: '\.\.'
+      scope: keyword.operator.range.pest
+      set: peek_slice_after_dots
+    - match: '\]'
+      scope: invalid.pest
+      pop: true
+    - match: \S
+      scope: invalid.pest
+      set: peek_slice_end
+
+  peek_slice_after_dots:
+    - include: comments
+    - match: '\]'
+      pop: true
+    - match: '(?:-0*[1-9]\d*|\d+)'
+      scope: constant.numeric.integer.pest
+      set: peek_slice_end
+    - match: \S
+      scope: invalid.pest
+      set: peek_slice_end
+
+  peek_slice_end:
+    - include: comments
+    - match: '\]'
+      pop: true
+    - match: \S
+      scope: invalid.pest
+
   trailing:
+    - include: comments
     - match: '{{trailing_op}}'
       scope: keyword.operator.pest
       set: 
@@ -152,23 +209,27 @@ contexts:
         scope: invalid.pest
       - match: ''
         pop: true
-    - match: '{'
+    - match: '\{'
       push: trailing_braces
+    - match: '\s+'
     - match: ''
       pop: true
 
   trailing_braces:
+    - include: comments
     - match: '}'
       scope: invalid.pest
       pop: true
     - match: ','
       set:
+      - include: comments
       - match: '}'
         scope: invalid.pest
         pop: true
       - match: \d+
         scope: constant.numeric.integer.pest
         set:
+        - include: comments
         - match: '}'
           pop: true
         - match: \S
@@ -178,15 +239,18 @@ contexts:
     - match: \d+
       scope: constant.numeric.integer.pest
       set:
+      - include: comments
       - match: '}'
         pop: true
       - match: ','
         set:
+        - include: comments
         - match: '}'
           pop: true
         - match: \d+
           scope: constant.numeric.integer.pest
           set:
+          - include: comments
           - match: '}'
             pop: true
           - match: \S
