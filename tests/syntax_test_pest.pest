@@ -13,6 +13,16 @@
 //                 ^^ comment.block.pest punctuation.definition.comment.pest
 //                          ^^ comment.block.pest punctuation.definition.comment.pest
 
+//! Top-level grammar documentation
+// <- comment.line.double-dash.pest punctuation.definition.comment.pest - invalid.pest
+//^ comment.line.double-dash.pest punctuation.definition.comment.pest
+//  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ comment.line.double-dash.pest - invalid.pest
+
+/// Rule documentation
+// <- comment.line.double-dash.pest punctuation.definition.comment.pest - invalid.pest
+//^ comment.line.double-dash.pest punctuation.definition.comment.pest
+//  ^^^^^^^^^^^^^^^^^^ comment.line.double-dash.pest - invalid.pest
+
 // ============================================================================
 // Rule declarations & modifiers
 // ============================================================================
@@ -681,4 +691,114 @@ chained_postfix = { x{2}? ~ y+{2} ~ z{2}{3} }
 //                                   ^^^^^^ - invalid.pest
 //                                    ^ constant.numeric.integer.pest
 //                                       ^ constant.numeric.integer.pest
+
+// ============================================================================
+// Real-world constructs & additional pest_meta edge cases
+// ============================================================================
+
+/// Rule doc before real_world_constructs
+// <- comment.line.double-dash.pest punctuation.definition.comment.pest - invalid.pest
+//^ comment.line.double-dash.pest punctuation.definition.comment.pest
+real_world_constructs = {
+    PUSH(" "+) ~ PEEK[-2..-1] ~ PUSH("  " ~ POP) ~ PUSH("'" | "\"") ~ ('0' .. '9')+
+//  ^^^^ meta.function-call support.function.pest - invalid.pest
+//       ^^^ string.quoted.double.pest
+//          ^ keyword.operator.pest
+//               ^^^^ meta.function-call support.function.pest
+//                    ^^ constant.numeric.integer.pest
+//                      ^^ keyword.operator.range.pest
+//                        ^^ constant.numeric.integer.pest
+//                              ^^^^ meta.function-call support.function.pest
+//                                   ^^^^ string.quoted.double.pest
+//                                        ^ keyword.operator.pest
+//                                          ^^^ meta.function-call support.function.pest
+//                                                 ^^^^ meta.function-call support.function.pest
+//                                                      ^^^ string.quoted.double.pest
+//                                                          ^ keyword.operator.pest
+//                                                            ^^^^ string.quoted.double.pest
+//                                                                     ^^^ string.quoted.single.pest
+//                                                                         ^^ keyword.operator.range.pest
+//                                                                            ^^^ string.quoted.single.pest
+//                                                                                ^ keyword.operator.pest
+  ~ PUSH_LITERAL("]") ~ #_ = a ~ #tag = !"x" ~ #page=b
+//  ^^^^^^^^^^^^ meta.function-call support.function.pest
+//               ^^^ string.quoted.double.pest
+//                      ^^ entity.name.tag.pest - invalid.pest
+//                         ^ keyword.operator.pest
+//                           ^ meta.function-call variable.function.pest
+//                               ^^^^ entity.name.tag.pest - invalid.pest
+//                                    ^ keyword.operator.pest
+//                                      ^ keyword.operator.pest
+//                                       ^^^ string.quoted.double.pest
+//                                             ^^^^^ entity.name.tag.pest - invalid.pest
+//                                                  ^ keyword.operator.pest
+//                                                   ^ meta.function-call variable.function.pest
+  ~ ^ /* c1 */ "abc" ~ #spaced_tag /* c2 */ = a ~ PEEK /* c3 */ [..]
+//  ^ keyword.operator.pest - invalid.pest
+//    ^^^^^^^^ comment.block.pest
+//             ^^^^^ string.quoted.double.pest - invalid.pest
+//                     ^^^^^^^^^^^ entity.name.tag.pest - invalid.pest
+//                                 ^^^^^^^^ comment.block.pest
+//                                          ^ keyword.operator.pest - invalid.pest
+//                                            ^ meta.function-call variable.function.pest
+//                                                ^^^^ meta.function-call support.function.pest
+//                                                     ^^^^^^^^ comment.block.pest
+//                                                              ^^^^ - invalid.pest
+//                                                               ^^ keyword.operator.range.pest
+  ~ PUSH /* c4 */ ("a") ~ PUSH_LITERAL /* c5 */ ("a")
+//  ^^^^ meta.function-call support.function.pest - invalid.pest
+//       ^^^^^^^^ comment.block.pest
+//                ^ punctuation.section.parens.begin.pest
+//                 ^^^ string.quoted.double.pest
+//                    ^ punctuation.section.parens.end.pest
+//                        ^^^^^^^^^^^^ meta.function-call support.function.pest - invalid.pest
+//                                     ^^^^^^^^ comment.block.pest
+//                                              ^ punctuation.section.parens.begin.pest
+//                                               ^^^ string.quoted.double.pest
+//                                                  ^ punctuation.section.parens.end.pest
+}
+
+invalid_paren_leading_choice = { (| "a" | "b") }
+//                               ^ punctuation.section.parens.begin.pest
+//                                ^ invalid.pest
+//                                  ^^^ string.quoted.double.pest
+//                                      ^ keyword.operator.pest
+//                                        ^^^ string.quoted.double.pest
+//                                           ^ punctuation.section.parens.end.pest
+
+invalid_tags = { ! #tag = "x" ~ #t1 = #t2 = "y" ~ # spaced = "z" }
+//               ^ keyword.operator.pest
+//                 ^^^^^^ invalid.pest
+//                        ^^^ string.quoted.double.pest
+//                            ^ keyword.operator.pest
+//                              ^^^ entity.name.tag.pest - invalid.pest
+//                                  ^ keyword.operator.pest
+//                                    ^^^^^ invalid.pest
+//                                          ^^^ string.quoted.double.pest
+//                                              ^ keyword.operator.pest
+//                                                ^ invalid.pest
+//                                                  ^^^^^^ invalid.pest
+
+invalid_caret = { ^ident ~ ^'a' }
+//                ^ keyword.operator.pest
+//                 ^^^^^ invalid.pest
+//                       ^ keyword.operator.pest
+//                         ^ keyword.operator.pest
+//                          ^^^ invalid.pest
+
+//! Grammar doc after rules is invalid
+// <- invalid.pest
+//^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ invalid.pest
+
+invalid_doc_in_rule = {
+    /// outer doc inside rule body is invalid
+//  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ invalid.pest
+    //! inner doc inside rule body is invalid
+//  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ invalid.pest
+    /////////////////////////////////////////
+//  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ invalid.pest
+    "still_parses"
+//  ^^^^^^^^^^^^^^ string.quoted.double.pest - invalid.pest
+}
+
 
