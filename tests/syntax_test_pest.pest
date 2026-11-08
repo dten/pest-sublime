@@ -529,3 +529,156 @@ hex_digit = @{ '0'..'9' | 'a'..'f' | 'A'..'F' }
 //                                   ^^^ string.quoted.single.pest
 //                                      ^^ keyword.operator.range.pest
 //                                        ^^^ string.quoted.single.pest
+
+// ============================================================================
+// Parser & validator edge cases (from pest meta/src/parser.rs & validator.rs)
+// ============================================================================
+
+_ = { "a" }
+// <- invalid.pest
+//^ keyword.operator.pest
+//    ^^^ string.quoted.double.pest
+ANY = { "a" }
+// <- invalid.pest
+//^ invalid.pest
+//  ^ keyword.operator.pest
+SOI = { "a" }
+// <- invalid.pest
+PUSH = { "a" }
+// <- invalid.pest
+SYMBOL = { "shadows builtin unicode category" }
+// <- entity.name.function.pest - invalid.pest
+bare_underscore_in_expr = { _ ~ _ok }
+//                          ^ invalid.pest
+//                            ^ keyword.operator.pest
+//                              ^^^ meta.function-call variable.function.pest - invalid.pest
+
+unclosed_paren = { (a }
+//                 ^ punctuation.section.parens.begin.pest
+//                  ^ meta.function-call variable.function.pest
+//                    ^ invalid.pest
+after_unclosed_paren = { "recovered" }
+// <- entity.name.function.pest - invalid.pest
+//                   ^ keyword.operator.pest
+//                       ^^^^^^^^^^^ string.quoted.double.pest
+
+invalid_chars = { '' ~ 'abc' ~ 'a'..'cd' }
+//                ^ punctuation.definition.string.begin.pest
+//                 ^ invalid.pest
+//                   ^ keyword.operator.pest
+//                     ^ punctuation.definition.string.begin.pest
+//                      ^ string.quoted.single.pest - invalid.pest
+//                       ^^ string.quoted.single.pest invalid.pest
+//                         ^ punctuation.definition.string.end.pest
+//                           ^ keyword.operator.pest
+//                             ^^^ string.quoted.single.pest - invalid.pest
+//                                ^^ keyword.operator.range.pest
+//                                  ^ punctuation.definition.string.begin.pest
+//                                   ^ string.quoted.single.pest - invalid.pest
+//                                    ^ string.quoted.single.pest invalid.pest
+//                                     ^ punctuation.definition.string.end.pest
+unclosed_char_eol = { 'a
+//                    ^ punctuation.definition.string.begin.pest
+//                     ^ invalid.pest
+}
+after_unclosed_char = { "ok" }
+// <- entity.name.function.pest - invalid.pest
+
+empty_rule = {}
+// <- entity.name.function.pest
+//            ^ invalid.pest
+empty_parens = { () ~ a }
+//               ^ punctuation.section.parens.begin.pest
+//                ^ invalid.pest
+//                  ^ keyword.operator.pest
+//                    ^ meta.function-call variable.function.pest
+
+leading_seq = { ~ a }
+//              ^ invalid.pest
+//                ^ meta.function-call variable.function.pest
+trailing_seq = { a ~ }
+//               ^ meta.function-call variable.function.pest
+//                 ^ keyword.operator.pest
+//                   ^ invalid.pest
+trailing_choice = { a | }
+//                  ^ meta.function-call variable.function.pest
+//                    ^ keyword.operator.pest
+//                      ^ invalid.pest
+trailing_pred = { ! }
+//                ^ keyword.operator.pest
+//                  ^ invalid.pest
+trailing_tag = { #t = }
+//               ^^ entity.name.tag.pest
+//                  ^ keyword.operator.pest
+//                    ^ invalid.pest
+trailing_in_paren = { (a ~) }
+//                     ^ meta.function-call variable.function.pest
+//                       ^ keyword.operator.pest
+//                        ^ invalid.pest
+consecutive_ops = { a ~ ~ b | ~ c ~ ! ~ d }
+//                  ^ meta.function-call variable.function.pest
+//                    ^ keyword.operator.pest
+//                      ^ invalid.pest
+//                        ^ meta.function-call variable.function.pest
+//                          ^ keyword.operator.pest
+//                            ^ invalid.pest
+//                              ^ meta.function-call variable.function.pest
+//                                ^ keyword.operator.pest
+//                                  ^ keyword.operator.pest
+//                                    ^ invalid.pest
+//                                      ^ meta.function-call variable.function.pest
+
+missing_infix = { a b ~ "x" "y" ~ c& }
+//                ^ meta.function-call variable.function.pest
+//                  ^ invalid.pest
+//                    ^ keyword.operator.pest
+//                      ^^^ string.quoted.double.pest
+//                          ^^^ invalid.pest
+//                              ^ keyword.operator.pest
+//                                ^ meta.function-call variable.function.pest
+//                                 ^ invalid.pest
+
+valid_push_spaced = { PUSH ( a ) ~ PUSH_LITERAL ( "x" ) }
+//                    ^^^^ meta.function-call support.function.pest - invalid.pest
+//                         ^ punctuation.section.parens.begin.pest
+//                           ^ meta.function-call variable.function.pest
+//                             ^ punctuation.section.parens.end.pest
+//                               ^ keyword.operator.pest
+//                                 ^^^^^^^^^^^^ meta.function-call support.function.pest - invalid.pest
+//                                              ^ punctuation.section.parens.begin.pest
+//                                                ^^^ string.quoted.double.pest
+//                                                    ^ punctuation.section.parens.end.pest
+invalid_push_calls = { PUSH ~ PUSH() ~ PUSH_LITERAL ~ PUSH_LITERAL() ~ PUSH_LITERAL(ident) }
+//                     ^^^^ invalid.pest
+//                          ^ keyword.operator.pest
+//                            ^^^^ meta.function-call support.function.pest
+//                                ^ punctuation.section.parens.begin.pest
+//                                 ^ invalid.pest
+//                                   ^ keyword.operator.pest
+//                                     ^^^^^^^^^^^^ invalid.pest
+//                                                  ^ keyword.operator.pest
+//                                                    ^^^^^^^^^^^^ meta.function-call support.function.pest
+//                                                                ^ punctuation.section.parens.begin.pest
+//                                                                 ^ invalid.pest
+//                                                                   ^ keyword.operator.pest
+//                                                                     ^^^^^^^^^^^^ meta.function-call support.function.pest
+//                                                                                 ^ punctuation.section.parens.begin.pest
+//                                                                                  ^^^^^ invalid.pest
+//                                                                                       ^ punctuation.section.parens.end.pest
+
+chained_postfix = { x{2}? ~ y+{2} ~ z{2}{3} }
+//                  ^ meta.function-call variable.function.pest
+//                   ^^^ - invalid.pest
+//                    ^ constant.numeric.integer.pest
+//                      ^ keyword.operator.pest - invalid.pest
+//                        ^ keyword.operator.pest
+//                          ^ meta.function-call variable.function.pest
+//                           ^ keyword.operator.pest - invalid.pest
+//                            ^^^ - invalid.pest
+//                             ^ constant.numeric.integer.pest
+//                                ^ keyword.operator.pest
+//                                  ^ meta.function-call variable.function.pest
+//                                   ^^^^^^ - invalid.pest
+//                                    ^ constant.numeric.integer.pest
+//                                       ^ constant.numeric.integer.pest
+
