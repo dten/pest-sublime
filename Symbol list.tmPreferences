@@ -6,7 +6,7 @@
 	<string>Symbol List</string>
 	<key>scope</key>
 	<string>
-		source.pest support.type.override
+		source.pest support.function.override
 	</string>
 	<key>settings</key>
 	<dict>

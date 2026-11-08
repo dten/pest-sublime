@@ -24,11 +24,13 @@ contexts:
       scope: invalid.pest
 
   rule_decl:
-    - match: '^\s*{{replaceable_support_idents}}'
-      scope: support.function.override.pest
+    - match: '^\s*({{replaceable_support_idents}})'
+      captures:
+        1: support.function.override.pest
       set: [rule_def, must_be_equals]
-    - match: '^\s*{{ident}}'
-      scope: entity.name.function.pest
+    - match: '^\s*({{ident}})'
+      captures:
+        1: entity.name.function.pest
       set: [rule_def, must_be_equals]
     - match: \S
       scope: invalid.pest
